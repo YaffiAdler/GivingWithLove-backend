@@ -28,6 +28,7 @@ namespace Dal.Services
                     catch(Exception ex)
                     {
                         mydb.VolunteerDomains.Remove(volunteerDomain);
+                        Console.WriteLine(ex.InnerException?.Message);
                         throw new Exception(ex.Message);
                     }
                 }

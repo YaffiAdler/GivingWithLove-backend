@@ -54,8 +54,10 @@ namespace Bl.BLServices
         public void Create(BLVolunteerModel item)
 
         {
-            item.VolunteerDomains.ToList().ForEach(x => BlDomain.Create(x));
+ 
             Volunteer.Create(Convert(item));
+            
+            //item.VolunteerDomains.ToList().ForEach(x => BlDomain.Create(x));
         }
 
         public void Delete(BLVolunteerModel item)
@@ -89,9 +91,10 @@ namespace Bl.BLServices
         }
 
         public void Update(BLVolunteerModel item)
-        {   item.VolunteerDomains.ToList().ForEach(x => BlDomain.Create(x));
+        {   
+            //item.VolunteerDomains.ToList().ForEach(x => BlDomain.Create(x));
             var tt = Convert(item);
-           
+
             Volunteer.Update(tt);
         }
     }

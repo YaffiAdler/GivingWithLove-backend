@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Dal.Models;
 
 public partial class VolunteerDomain
 {
+    
     public int VolunteerDomainsCode { get; set; }
 
     public int VolunteerCode { get; set; }

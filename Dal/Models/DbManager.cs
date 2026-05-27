@@ -146,7 +146,7 @@ public partial class DbManager : DbContext
         {
             entity.HasKey(e => e.VolunteerDomainsCode).HasName("PK__Voluntee__580D6AD82A08ACE1");
 
-            entity.Property(e => e.VolunteerDomainsCode).ValueGeneratedNever();
+            entity.Property(e => e.VolunteerDomainsCode).ValueGeneratedOnAdd();
 
             entity.HasOne(d => d.ProjectCodeNavigation).WithMany(p => p.VolunteerDomains)
                 .HasForeignKey(d => d.ProjectCode)

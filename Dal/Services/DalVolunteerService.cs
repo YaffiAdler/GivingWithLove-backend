@@ -66,16 +66,25 @@ namespace Dal.Services
         {
             try
             {
-                var i = ReadAll().Result.FindIndex(v => v.VolunteerCode == item.VolunteerCode);
-                if (i >= 0)
+                var volunteer = db.Volunteers
+                    .FirstOrDefault(v => v.VolunteerCode == item.VolunteerCode);
+
+                if (volunteer != null)
                 {
-                    db.Volunteers.ToList<Volunteer>()[i] = item;
+                    volunteer.PositionCode = item.PositionCode;
+                    
+                    //volunteer.VolunteerDomains = item.VolunteerDomains;
+                    //volunteer. = item.Address;
+
+                    // לעדכן את כל השדות הדרושים
+
                     db.SaveChanges();
                 }
-
             }
-            catch { Console.WriteLine("Volunteer not found"); }
-
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
     }
 }

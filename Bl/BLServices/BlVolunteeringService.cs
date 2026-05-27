@@ -116,7 +116,13 @@ namespace Bl.BLServices
         public async Task<BlVolunteeringModel> Read(int id)
         {
            //BLVolunteeringModel model=Convert(dal.ReadAll().Result.Find(v=>v.VolunteerCode==id));
-           return Convert(dal.Read(id).Result);
+           //return Convert(dal.Read(id).Result);
+
+            try { return Convert(dal.Read(id).Result); }
+            catch (ObjectNotFoundException e)
+            {
+                return null;
+            }
         }
 
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         

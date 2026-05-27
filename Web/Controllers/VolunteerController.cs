@@ -39,7 +39,11 @@ namespace Web.Controllers
             try { 
                 bl.Volunteer.Create(v);
                 return true; }
-            catch { return false; }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                throw;
+            }
         }
 
         // PUT api/<VolunteerController>/5
