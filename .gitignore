@@ -31,3 +31,11 @@ Thumbs.db
 bin/
 obj/
 .vs/
+.vs/
+bin/
+obj/
+*.db
+*.mdf
+*.ldf
+*.dll
+*.pdb

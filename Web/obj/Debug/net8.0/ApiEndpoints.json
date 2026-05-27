@@ -649,6 +649,22 @@
     ]
   },
   {
+    "ContainingType": "Web.Controllers.VolunteerController",
+    "Method": "UpdateDomains",
+    "RelativePath": "api/Volunteer/domains",
+    "HttpMethod": "PUT",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "dto",
+        "Type": "Bl.BLModels.BLVolunteerModel",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
     "ContainingType": "Web.Controllers.VolunteerDomainController",
     "Method": "Delete",
     "RelativePath": "api/VolunteerDomain/Delete/{id}",

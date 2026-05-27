@@ -86,5 +86,36 @@ namespace Dal.Services
                 Console.WriteLine(ex.Message);
             }
         }
+
+        public async Task UpdateVolunteerDomains(Volunteer dto)
+        {
+            var newSet = dto.VolunteerDomains
+        .Select(x => x.ProjectCode)
+        .ToHashSet();
+
+            var existing = await db.VolunteerDomains
+                .Where(x => x.VolunteerCode == dto.VolunteerCode)
+                .ToListAsync();
+
+            var existingSet = existing
+                .Select(x => x.ProjectCode)
+                .ToHashSet();
+
+            var toAdd = newSet.Except(existingSet);
+            var toRemove = existing.Where(x => !newSet.Contains(x.ProjectCode));
+
+            foreach (var projectCode in toAdd)
+            {
+                db.VolunteerDomains.Add(new VolunteerDomain
+                {
+                    VolunteerCode = dto.VolunteerCode,
+                    ProjectCode = projectCode
+                });
+            }
+
+            db.VolunteerDomains.RemoveRange(toRemove);
+
+            await db.SaveChangesAsync();
+        }
     }
 }

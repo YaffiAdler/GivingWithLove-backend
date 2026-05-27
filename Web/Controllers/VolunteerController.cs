@@ -71,6 +71,12 @@ namespace Web.Controllers
             }
             catch { return false; }
         }
+        [HttpPut("domains")]
+        public async Task<IActionResult> UpdateDomains([FromBody] BLVolunteerModel dto)
+        {
+            await bl.Volunteer.UpdateVolunteerDomains(dto);
+            return Ok();
+        }
 
     }
 }

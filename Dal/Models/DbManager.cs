@@ -144,6 +144,8 @@ public partial class DbManager : DbContext
 
         modelBuilder.Entity<VolunteerDomain>(entity =>
         {
+            entity.HasIndex(v => new { v.VolunteerCode, v.ProjectCode })
+         .IsUnique();
             entity.HasKey(e => e.VolunteerDomainsCode).HasName("PK__Voluntee__580D6AD82A08ACE1");
 
             entity.Property(e => e.VolunteerDomainsCode).ValueGeneratedOnAdd();

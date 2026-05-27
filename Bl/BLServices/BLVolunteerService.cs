@@ -97,5 +97,9 @@ namespace Bl.BLServices
 
             Volunteer.Update(tt);
         }
+        public async Task UpdateVolunteerDomains(BLVolunteerModel dto)
+        {
+            await Volunteer.UpdateVolunteerDomains(Convert(dto));
+        }
     }
 }
