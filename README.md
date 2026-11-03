@@ -51,6 +51,11 @@ Full interactive documentation is available in Swagger when running in Developme
 4. Open Swagger at `https://localhost:<port>/swagger`
    (the frontend expects `https://localhost:7016`).
 
+## Local database
+- The database file (`GWLData.mdf` / `.ldf`) is **not** stored in git (`*.mdf` and `*.ldf` are ignored).
+- The owner keeps it locally in `Dal/`. Never delete, move or overwrite it.
+- The connection string will be set per machine with `dotnet user-secrets`; the exact command is added in task BE-01.
+
 ## Roadmap
 - Authentication & authorization (JWT)
 - DTO validation and consistent error responses
