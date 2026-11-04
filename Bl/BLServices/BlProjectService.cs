@@ -1,94 +1,72 @@
 ﻿using Bl.BLApi;
 using Bl.BLModels;
+using Bl.Exceptions;
 using Dal.Api;
 using Dal.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Bl.BLServices
 {
     public class BlProjectService : BlProjectInterface
     {
-        private DalProjectInterface Project;
+        private const string EntityName = nameof(Project);
+
+        private readonly DalProjectInterface dal;
+
         public BlProjectService(DalProjectInterface dal)
         {
-            this.Project = dal;
+            this.dal = dal;
         }
 
+        public async Task<List<BlProjectModel>> GetAllAsync(CancellationToken ct)
+        {
+            List<Project> projects = await dal.GetAllAsync(ct);
+            return projects.Select(Convert).ToList();
+        }
 
-        private Project Convert(BlProjectModel s)
+        public async Task<BlProjectModel?> GetByIdAsync(int id, CancellationToken ct)
+        {
+            Project? project = await dal.GetByIdAsync(id, ct);
+            return project == null ? null : Convert(project);
+        }
+
+        public async Task<BlProjectModel> CreateAsync(BlProjectModel item, CancellationToken ct)
+        {
+            Project created = await dal.CreateAsync(Convert(item), ct);
+            return Convert(created);
+        }
+
+        public async Task UpdateAsync(BlProjectModel item, CancellationToken ct)
+        {
+            if (!await dal.UpdateAsync(Convert(item), ct))
+                throw new NotFoundException(EntityName, item.ProjectCode);
+        }
+
+        public async Task DeleteAsync(int id, CancellationToken ct)
+        {
+            if (!await dal.DeleteAsync(id, ct))
+                throw new NotFoundException(EntityName, id);
+        }
+
+        private static Project Convert(BlProjectModel project)
         {
             return new Project()
             {
-                ProjectCode = s.ProjectCode,
-                ProjectName = s.ProjectName,
-                ProjectManagerCode = s.ProjectManagerCode,
-                DomainCode = s.DomainCode
-             
-    };
+                ProjectCode = project.ProjectCode,
+                ProjectName = project.ProjectName,
+                ProjectManagerCode = project.ProjectManagerCode,
+                DomainCode = project.DomainCode
+            };
         }
-        private BlProjectModel Convert(Project s)
+
+        private static BlProjectModel Convert(Project project)
         {
             return new BlProjectModel()
             {
-
-                ProjectCode = s.ProjectCode,
-                ProjectName = s.ProjectName,
-                ProjectManagerCode = s.ProjectManagerCode,
-                DomainCode = s.DomainCode                
+                ProjectCode = project.ProjectCode,
+                ProjectName = project.ProjectName,
+                ProjectManagerCode = project.ProjectManagerCode,
+                DomainCode = project.DomainCode
             };
         }
-        private List<BlProjectModel> Convert(List<Project> c)
-        {
-            List<BlProjectModel> list = new List<BlProjectModel>();
-            foreach (var item in c)
-            {
-                list.Add(Convert(item));
-            }
-            return list;
-        }
-
-        public void Create(BlProjectModel item)
-        {
-            Project.Create(Convert(item));
-        }
-
-        public void Delete(BlProjectModel item)
-        {
-            Project.Delete(Convert(item));
-        }
-        public void Update(BlProjectModel item)
-        {
-            Project.Update(Convert(item));
-        }
-
-        public async Task<BlProjectModel> Read(int id)
-        {
-            try { return Convert(Project.Read(id).Result); }
-            catch (ObjectNotFoundException e)
-            {
-                return null;
-            }
-        }
-
-        public async Task<List<BlProjectModel>> Read(Func<BlProjectModel, bool> func)
-        {
-            List<BlProjectModel> list = Convert(Project.Read((Func<Project, bool>)func).Result);
-            return list;
-        }
-
-        public async Task<List<BlProjectModel>> ReadAll()
-        {
-            List<BlProjectModel> list = new List<BlProjectModel>();
-
-            Project.ReadAll().Result.ForEach(item => { list.Add(Convert(item)); });
-
-            return list;
-        }
-
-       
     }
 }

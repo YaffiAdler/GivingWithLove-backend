@@ -1,21 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Dal.Api
 {
     public interface ICrud<T>
     {
-        void Delete(T item);
+        Task<List<T>> GetAllAsync(CancellationToken ct);
 
-        void Create(T item);
+        Task<T?> GetByIdAsync(int id, CancellationToken ct);
 
-        void Update(T item);
-        Task<T> Read(int id);
-        Task<List<T>> ReadAll();
+        Task<T> CreateAsync(T item, CancellationToken ct);
 
-        Task<List<T>> Read(Func<T, bool> func);
+        // Returns false when no row with the item's key exists; the caller decides what that means.
+        Task<bool> UpdateAsync(T item, CancellationToken ct);
+
+        // Returns false when no row with this key exists; the caller decides what that means.
+        Task<bool> DeleteAsync(int id, CancellationToken ct);
     }
 }

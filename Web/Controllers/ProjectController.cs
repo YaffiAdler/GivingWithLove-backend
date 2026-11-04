@@ -2,65 +2,58 @@
 using Bl.BLModels;
 using Microsoft.AspNetCore.Mvc;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
 namespace Web.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class ProjectController : ControllerBase
     {
-
         private readonly BlProjectInterface projectService;
         public ProjectController(BlProjectInterface projectService)
         {
             this.projectService = projectService;
         }
-        // GET: api/<ProjectController>
+
         [HttpGet]
-        public Task<List<BlProjectModel>> Get()
+        public async Task<List<BlProjectModel>> Get(CancellationToken ct)
         {
-            return projectService.ReadAll();
+            return await projectService.GetAllAsync(ct);
         }
 
-        // GET api/<ProjectController>/5
         [HttpGet("{id}")]
-        public Task<BlProjectModel> Get(int id)
+        public async Task<BlProjectModel?> Get(int id, CancellationToken ct)
         {
-            return projectService.Read(id);
+            return await projectService.GetByIdAsync(id, ct);
         }
 
-        // POST api/<ProjectController>
         [HttpPost]
-        public bool Post(BlProjectModel s)
+        public async Task<bool> Post(BlProjectModel project, CancellationToken ct)
         {
             try
             {
-                projectService.Create(s);
+                await projectService.CreateAsync(project, ct);
                 return true;
             }
             catch { return false; }
         }
 
-        // PUT api/<ProjectController>/5
         [HttpPut("{id}")]
-        public bool Put(int id, BlProjectModel s)
+        public async Task<bool> Put(int id, BlProjectModel project, CancellationToken ct)
         {
             try
             {
-                projectService.Update(s);
+                await projectService.UpdateAsync(project, ct);
                 return true;
             }
             catch { return false; }
         }
 
-        // DELETE api/<ProjectController>/5
         [HttpDelete("{id}")]
-        public bool Delete(BlProjectModel s)
+        public async Task<bool> Delete(int id, CancellationToken ct)
         {
             try
             {
-                projectService.Delete(s);
+                await projectService.DeleteAsync(id, ct);
                 return true;
             }
             catch { return false; }

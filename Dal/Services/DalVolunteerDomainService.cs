@@ -1,91 +1,63 @@
-﻿using Dal.Api;
+using Dal.Api;
 using Dal.Models;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 namespace Dal.Services
 {
     public class DalVolunteerDomainService : DalVolunteerDomainInterface
     {
-        DbManager mydb;
-        public DalVolunteerDomainService(DbManager mydb)
+        private readonly DbManager db;
+
+        public DalVolunteerDomainService(DbManager db)
         {
-            this.mydb = mydb;
+            this.db = db;
         }
 
-        public void Create(VolunteerDomain volunteerDomain)
+        public async Task<List<VolunteerDomain>> GetAllAsync(CancellationToken ct)
         {
-            if (volunteerDomain == null)
-                throw new ArgumentNullException("volunteerDomain is null");
-            else
-                try
-                {
-                    mydb.VolunteerDomains.Add(volunteerDomain);
-                    try {mydb.SaveChanges();}
-                    catch(Exception ex)
-                    {
-                        mydb.VolunteerDomains.Remove(volunteerDomain);
-                        Console.WriteLine(ex.InnerException?.Message);
-                        throw new Exception(ex.Message);
-                    }
-                }
-                catch(Exception ex)
-                {
-                    throw new Exception(ex.Message);
-                }
+            return await db.VolunteerDomains.AsNoTracking().ToListAsync(ct);
         }
 
-       
-        public void Delete(VolunteerDomain volunteerDomain)
+        public async Task<VolunteerDomain?> GetByIdAsync(int id, CancellationToken ct)
         {
-            if (volunteerDomain == null)
-                throw new ArgumentNullException("item");
-            mydb.VolunteerDomains.Remove(volunteerDomain);
-            mydb.SaveChanges();
+            return await db.VolunteerDomains.AsNoTracking().FirstOrDefaultAsync(volunteerDomain => volunteerDomain.VolunteerDomainsCode == id, ct);
         }
 
-       public async Task<List<VolunteerDomain>> Read(Func<VolunteerDomain, bool> func)
+        public async Task<VolunteerDomain> CreateAsync(VolunteerDomain item, CancellationToken ct)
         {
-            List<VolunteerDomain> list = new();
-            foreach (VolunteerDomain item in mydb.VolunteerDomains)
-                if (func(item))
-                    list.Add(item);
-              return list;
+            db.VolunteerDomains.Add(item);
+            await db.SaveChangesAsync(ct);
+            return item;
         }
 
-        public async Task<VolunteerDomain> Read(int id)
+        public async Task<bool> UpdateAsync(VolunteerDomain item, CancellationToken ct)
         {
-            
-             VolunteerDomain vm =  mydb.VolunteerDomains.ToList().Find(v => v.VolunteerCode == id)?? throw new ObjectNotFoundException();
-            return vm;
-        }
-        public async Task<List<VolunteerDomain>> ReadAll()
-        {
-            return mydb.VolunteerDomains.ToList();
-        }
+            VolunteerDomain? existing = await db.VolunteerDomains.FirstOrDefaultAsync(volunteerDomain => volunteerDomain.VolunteerDomainsCode == item.VolunteerDomainsCode, ct);
+            if (existing == null)
+                return false;
 
-        
-
-        public void Update(VolunteerDomain volunteerDomain)
-        {
-            try
-            {
-                var i = ReadAll().Result.FindIndex(v => v.VolunteerDomainsCode == volunteerDomain.VolunteerDomainsCode);
-                if (i >= 0)
-                {
-                    mydb.VolunteerDomains.ToList<VolunteerDomain>()[i] = volunteerDomain;
-                   mydb.SaveChanges();
-                }
-
-            }
-            catch { Console.WriteLine("VolunteerDomain not found"); }
-           
+            db.Entry(existing).CurrentValues.SetValues(item);
+            await db.SaveChangesAsync(ct);
+            return true;
         }
 
-       
+        public async Task<bool> DeleteAsync(int id, CancellationToken ct)
+        {
+            VolunteerDomain? existing = await db.VolunteerDomains.FirstOrDefaultAsync(volunteerDomain => volunteerDomain.VolunteerDomainsCode == id, ct);
+            if (existing == null)
+                return false;
+
+            db.VolunteerDomains.Remove(existing);
+            await db.SaveChangesAsync(ct);
+            return true;
+        }
+
+        public async Task<List<VolunteerDomain>> GetByVolunteerAsync(int volunteerCode, CancellationToken ct)
+        {
+            return await db.VolunteerDomains
+                .AsNoTracking()
+                .Where(volunteerDomain => volunteerDomain.VolunteerCode == volunteerCode)
+                .ToListAsync(ct);
+        }
     }
 }
-  

@@ -2,8 +2,6 @@
 using Bl.BLModels;
 using Microsoft.AspNetCore.Mvc;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
 namespace Web.Controllers
 {
     [Route("api/[controller]")]
@@ -15,42 +13,37 @@ namespace Web.Controllers
         {
             this.positionService = positionService;
         }
-        // GET: api/<PositionController>
+
         [HttpGet]
-
-        public Task<List<BlPositionModel>> Get()
+        public async Task<List<BlPositionModel>> Get(CancellationToken ct)
         {
-            return positionService.ReadAll();
+            return await positionService.GetAllAsync(ct);
         }
-        
-        // GET api/<PositionController>/5
+
         [HttpGet("{id}")]
-        public Task<BlPositionModel> Get(int id)
+        public async Task<BlPositionModel?> Get(int id, CancellationToken ct)
         {
-            return positionService.Read(id);
+            return await positionService.GetByIdAsync(id, ct);
         }
 
-        // POST api/<PositionController>
         [HttpPost]
-        public void Post([FromBody] BlPositionModel value)
+        public async Task Post([FromBody] BlPositionModel value, CancellationToken ct)
         {
-            positionService.Create(value);
+            await positionService.CreateAsync(value, ct);
         }
-        
-        // PUT api/<PositionController>/5
+
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] BlPositionModel value)
+        public async Task Put(int id, [FromBody] BlPositionModel value, CancellationToken ct)
         {
-            positionService.Update(value);
+            await positionService.UpdateAsync(value, ct);
         }
-        
-        // DELETE api/<PositionController>/5
+
         [HttpDelete("{id}")]
-        public bool Delete(BlPositionModel id)
+        public async Task<bool> Delete(int id, CancellationToken ct)
         {
             try
             {
-                positionService.Delete(id);
+                await positionService.DeleteAsync(id, ct);
                 return true;
             }
             catch { return false; }

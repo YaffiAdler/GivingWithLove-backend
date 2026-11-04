@@ -1,80 +1,68 @@
 ﻿using Bl.BLApi;
 using Bl.BLModels;
+using Bl.Exceptions;
 using Dal.Api;
 using Dal.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Bl.BLServices
 {
     public class BlPositionService : BlPositionInterface
     {
+        private const string EntityName = nameof(Position);
 
-        DalPositionInterface dal;
+        private readonly DalPositionInterface dal;
+
         public BlPositionService(DalPositionInterface dal)
         {
             this.dal = dal;
         }
-        private BlPositionModel convert(Position p)
+
+        public async Task<List<BlPositionModel>> GetAllAsync(CancellationToken ct)
+        {
+            List<Position> positions = await dal.GetAllAsync(ct);
+            return positions.Select(Convert).ToList();
+        }
+
+        public async Task<BlPositionModel?> GetByIdAsync(int id, CancellationToken ct)
+        {
+            Position? position = await dal.GetByIdAsync(id, ct);
+            return position == null ? null : Convert(position);
+        }
+
+        public async Task<BlPositionModel> CreateAsync(BlPositionModel item, CancellationToken ct)
+        {
+            Position created = await dal.CreateAsync(Convert(item), ct);
+            return Convert(created);
+        }
+
+        public async Task UpdateAsync(BlPositionModel item, CancellationToken ct)
+        {
+            if (!await dal.UpdateAsync(Convert(item), ct))
+                throw new NotFoundException(EntityName, item.positionCode);
+        }
+
+        public async Task DeleteAsync(int id, CancellationToken ct)
+        {
+            if (!await dal.DeleteAsync(id, ct))
+                throw new NotFoundException(EntityName, id);
+        }
+
+        private static BlPositionModel Convert(Position position)
         {
             return new BlPositionModel()
             {
-                positionCode = p.positionCode,
-                positionName = p.positionName
+                positionCode = position.positionCode,
+                positionName = position.positionName
             };
         }
-        private Position convert(BlPositionModel p)
+
+        private static Position Convert(BlPositionModel position)
         {
             return new Position()
             {
-                positionCode = p.positionCode,
-                positionName = p.positionName
+                positionCode = position.positionCode,
+                positionName = position.positionName
             };
-        }
-        private List<BlPositionModel> convert(List<Position> p)
-        {
-            List<BlPositionModel> list = new List<BlPositionModel>();
-            foreach (var item in p)
-            {
-                list.Add(convert(item));
-            }
-            return list;
-        }
-
-        public void Create(BlPositionModel item)
-        {
-            dal.Create(convert(item));
-        }
-
-        public void Delete(BlPositionModel item)
-        {
-            dal.Delete(convert(item));
-        }
-        public async Task<BlPositionModel> Read(int id)
-        {
-            var data = await dal.Read(id);
-            return convert(data);
-        }
-        public async Task<List<BlPositionModel>> Read(Func<BlPositionModel, bool> func)
-        {
-            var data = await dal.ReadAll();
-            return data
-                .Select(convert)
-                .Where(func)
-                .ToList();
-        }
-        public async Task<List<BlPositionModel>> ReadAll()
-        {
-            var data = await dal.ReadAll();
-            return data.Select(item => convert(item)).ToList();
-        }
-
-        public void Update(BlPositionModel item)
-        {
-            dal.Update(convert(item));
         }
     }
 }

@@ -1,70 +1,51 @@
 ﻿using Bl.BLApi;
 using Bl.BLModels;
+using Bl.Exceptions;
 using Bl.Mapping;
 using Dal.Api;
 using Dal.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Bl.BLServices
 {
     public class BlEichudService : BlEichudInterface
     {
-        DalEichudInterface dal;
+        private const string EntityName = nameof(Eichud);
+
+        private readonly DalEichudInterface dal;
+
         public BlEichudService(DalEichudInterface dal)
         {
             this.dal = dal;
         }
-        private List<BlEichudModel> convert(List<Eichud> v)
+
+        public async Task<List<BlEichudModel>> GetAllAsync(CancellationToken ct)
         {
-            List<BlEichudModel> list = new List<BlEichudModel>();
-            foreach (var item in v)
-            {
-                list.Add(EichudMapper.ToModel(item));
-            }
-            return list;
-        }
-        public void Create(BlEichudModel item)
-        {
-            dal.Create(EichudMapper.ToEntity(item));
+            List<Eichud> eichuds = await dal.GetAllAsync(ct);
+            return eichuds.Select(EichudMapper.ToModel).ToList();
         }
 
-        public void Delete(BlEichudModel item)
+        public async Task<BlEichudModel?> GetByIdAsync(int id, CancellationToken ct)
         {
-            dal.Delete(EichudMapper.ToEntity(item));
+            Eichud? eichud = await dal.GetByIdAsync(id, ct);
+            return eichud == null ? null : EichudMapper.ToModel(eichud);
         }
 
-        public async Task<List<BlEichudModel>> Read(Func<BlEichudModel, bool> func)
+        public async Task<BlEichudModel> CreateAsync(BlEichudModel item, CancellationToken ct)
         {
-
-            List<BlEichudModel> list = convert(dal.Read((Func<Eichud, bool>)func).Result);
-            return list;
+            Eichud created = await dal.CreateAsync(EichudMapper.ToEntity(item), ct);
+            return EichudMapper.ToModel(created);
         }
 
-        public async Task<BlEichudModel> Read(int id)
+        public async Task UpdateAsync(BlEichudModel item, CancellationToken ct)
         {
-            try { return EichudMapper.ToModel(dal.Read(id).Result); }
-            catch (ObjectNotFoundException e)
-            {
-                return null;
-            }
+            if (!await dal.UpdateAsync(EichudMapper.ToEntity(item), ct))
+                throw new NotFoundException(EntityName, item.EichudCode);
         }
 
-        public async Task<List<BlEichudModel>> ReadAll()
+        public async Task DeleteAsync(int id, CancellationToken ct)
         {
-            List<BlEichudModel> list = new List<BlEichudModel>();
-            dal.ReadAll().Result.ForEach(item => { list.Add(EichudMapper.ToModel(item)); });
-            return list;
+            if (!await dal.DeleteAsync(id, ct))
+                throw new NotFoundException(EntityName, id);
         }
-
-        public void Update(BlEichudModel item)
-        {
-            dal.Update(EichudMapper.ToEntity(item));
-        }
-
-       
     }
 }

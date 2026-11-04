@@ -1,23 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Bl.BLApi
 {
     public interface BlICrud<T>
     {
-        void Delete(T item);
+        Task<List<T>> GetAllAsync(CancellationToken ct);
 
-        void Create(T item);
+        Task<T?> GetByIdAsync(int id, CancellationToken ct);
 
-        void Update(T item);
+        Task<T> CreateAsync(T item, CancellationToken ct);
 
-        Task<T> Read(int id);
+        // Throws NotFoundException when the item does not exist.
+        Task UpdateAsync(T item, CancellationToken ct);
 
-        Task<List<T>> ReadAll();
-
-        Task<List<T>> Read(Func<T, bool> func);
+        // Throws NotFoundException when the item does not exist.
+        Task DeleteAsync(int id, CancellationToken ct);
     }
 }

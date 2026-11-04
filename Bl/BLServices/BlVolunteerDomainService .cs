@@ -1,61 +1,49 @@
-﻿using Bl.BLModels;
+﻿using Bl.Exceptions;
 using Bl.Mapping;
 using Dal.Api;
 using Dal.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Bl.BLServices
 {
-    public class BlVolunteerDomainService:BlVolunteerDomainInterface
+    public class BlVolunteerDomainService : BlVolunteerDomainInterface
     {
-        DalVolunteerDomainInterface dal;
+        private const string EntityName = nameof(VolunteerDomain);
+
+        private readonly DalVolunteerDomainInterface dal;
+
         public BlVolunteerDomainService(DalVolunteerDomainInterface dal)
         {
             this.dal = dal;
         }
 
-        public void Create(BlVolunteerDomainModel item)
+        public async Task<List<BlVolunteerDomainModel>> GetAllAsync(CancellationToken ct)
         {
-            dal.Create(VolunteerDomainMapper.ToEntity(item));
+            List<VolunteerDomain> volunteerDomains = await dal.GetAllAsync(ct);
+            return VolunteerDomainMapper.ToModels(volunteerDomains);
         }
 
-        public void Delete(BlVolunteerDomainModel item)
+        public async Task<BlVolunteerDomainModel?> GetByIdAsync(int id, CancellationToken ct)
         {
-            dal.Delete(VolunteerDomainMapper.ToEntity(item));
+            VolunteerDomain? volunteerDomain = await dal.GetByIdAsync(id, ct);
+            return volunteerDomain == null ? null : VolunteerDomainMapper.ToModel(volunteerDomain);
         }
 
-
-        public async Task<List<BlVolunteerDomainModel>> ReadAll()
+        public async Task<BlVolunteerDomainModel> CreateAsync(BlVolunteerDomainModel item, CancellationToken ct)
         {
-            List<BlVolunteerDomainModel> list = new List<BlVolunteerDomainModel>();
-
-            dal.ReadAll().Result.ForEach(item => { list.Add(VolunteerDomainMapper.ToModel(item)); });
-
-            return list;
+            VolunteerDomain created = await dal.CreateAsync(VolunteerDomainMapper.ToEntity(item), ct);
+            return VolunteerDomainMapper.ToModel(created);
         }
 
-        public void Update(BlVolunteerDomainModel item)
+        public async Task UpdateAsync(BlVolunteerDomainModel item, CancellationToken ct)
         {
-            dal.Update(VolunteerDomainMapper.ToEntity(item));
-
-        }
-        public async Task<List<BlVolunteerDomainModel>> Read(Func<BlVolunteerDomainModel, bool> func)
-        {
-            List<BlVolunteerDomainModel> list = VolunteerDomainMapper.ToModels(dal.Read((Func<VolunteerDomain, bool>)func).Result);
-            return list;
-
+            if (!await dal.UpdateAsync(VolunteerDomainMapper.ToEntity(item), ct))
+                throw new NotFoundException(EntityName, item.VolunteerDomainsCode);
         }
 
-        public async Task<BlVolunteerDomainModel> Read(int vl)
+        public async Task DeleteAsync(int id, CancellationToken ct)
         {
-           return VolunteerDomainMapper.ToModel(dal.Read(vl).Result);
+            if (!await dal.DeleteAsync(id, ct))
+                throw new NotFoundException(EntityName, id);
         }
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
     }
 }
-
