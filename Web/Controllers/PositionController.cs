@@ -1,6 +1,7 @@
 ﻿using Bl.BLApi;
 using Bl.BLModels;
 using Microsoft.AspNetCore.Mvc;
+using Web.Errors;
 
 namespace Web.Controllers
 {
@@ -9,44 +10,47 @@ namespace Web.Controllers
     public class PositionController : ControllerBase
     {
         private readonly BlPositionInterface positionService;
+
         public PositionController(BlPositionInterface positionService)
         {
             this.positionService = positionService;
         }
 
         [HttpGet]
-        public async Task<List<BlPositionModel>> Get(CancellationToken ct)
+        public async Task<ActionResult<List<BlPositionModel>>> GetAll(CancellationToken ct)
         {
             return await positionService.GetAllAsync(ct);
         }
 
         [HttpGet("{id}")]
-        public async Task<BlPositionModel?> Get(int id, CancellationToken ct)
+        public async Task<ActionResult<BlPositionModel>> GetById(int id, CancellationToken ct)
         {
-            return await positionService.GetByIdAsync(id, ct);
+            BlPositionModel? position = await positionService.GetByIdAsync(id, ct);
+            return position == null ? NotFound() : position;
         }
 
         [HttpPost]
-        public async Task Post([FromBody] BlPositionModel value, CancellationToken ct)
+        public async Task<ActionResult<BlPositionModel>> Create([FromBody] BlPositionModel position, CancellationToken ct)
         {
-            await positionService.CreateAsync(value, ct);
+            BlPositionModel created = await positionService.CreateAsync(position, ct);
+            return CreatedAtAction(nameof(GetById), new { id = created.positionCode }, created);
         }
 
         [HttpPut("{id}")]
-        public async Task Put(int id, [FromBody] BlPositionModel value, CancellationToken ct)
+        public async Task<IActionResult> Update(int id, [FromBody] BlPositionModel position, CancellationToken ct)
         {
-            await positionService.UpdateAsync(value, ct);
+            if (position.positionCode != id)
+                return this.IdMismatchProblem(id, position.positionCode);
+
+            await positionService.UpdateAsync(position, ct);
+            return NoContent();
         }
 
         [HttpDelete("{id}")]
-        public async Task<bool> Delete(int id, CancellationToken ct)
+        public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
-            try
-            {
-                await positionService.DeleteAsync(id, ct);
-                return true;
-            }
-            catch { return false; }
+            await positionService.DeleteAsync(id, ct);
+            return NoContent();
         }
     }
 }

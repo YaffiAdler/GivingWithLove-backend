@@ -1,6 +1,8 @@
 ﻿using Bl.BLApi;
 using Bl.BLModels;
+using Bl.Dtos.Volunteer;
 using Microsoft.AspNetCore.Mvc;
+using Web.Errors;
 
 namespace Web.Controllers
 {
@@ -9,57 +11,54 @@ namespace Web.Controllers
     public class VolunteerController : ControllerBase
     {
         private readonly BlVolunteerInterface volunteerService;
+
         public VolunteerController(BlVolunteerInterface volunteerService)
         {
             this.volunteerService = volunteerService;
         }
 
         [HttpGet]
-        public async Task<List<BLVolunteerModel>> Get(CancellationToken ct)
+        public async Task<ActionResult<List<BLVolunteerModel>>> GetAll(CancellationToken ct)
         {
             return await volunteerService.GetAllAsync(ct);
         }
 
         [HttpGet("{id}")]
-        public async Task<BLVolunteerModel?> Get(int id, CancellationToken ct)
+        public async Task<ActionResult<BLVolunteerModel>> GetById(int id, CancellationToken ct)
         {
-            return await volunteerService.GetByIdAsync(id, ct);
+            BLVolunteerModel? volunteer = await volunteerService.GetByIdAsync(id, ct);
+            return volunteer == null ? NotFound() : volunteer;
         }
 
         [HttpPost]
-        public async Task<bool> Post(BLVolunteerModel volunteer, CancellationToken ct)
+        public async Task<ActionResult<BLVolunteerModel>> Create([FromBody] BLVolunteerModel volunteer, CancellationToken ct)
         {
-            await volunteerService.CreateAsync(volunteer, ct);
-            return true;
+            BLVolunteerModel created = await volunteerService.CreateAsync(volunteer, ct);
+            return CreatedAtAction(nameof(GetById), new { id = created.VolunteerCode }, created);
         }
 
         [HttpPut("{id}")]
-        public async Task<bool> Put(int id, BLVolunteerModel volunteer, CancellationToken ct)
+        public async Task<IActionResult> Update(int id, [FromBody] BLVolunteerModel volunteer, CancellationToken ct)
         {
-            try
-            {
-                await volunteerService.UpdateAsync(volunteer, ct);
-                return true;
-            }
-            catch { return false; }
+            if (volunteer.VolunteerCode != id)
+                return this.IdMismatchProblem(id, volunteer.VolunteerCode);
+
+            await volunteerService.UpdateAsync(volunteer, ct);
+            return NoContent();
         }
 
         [HttpDelete("{id}")]
-        public async Task<bool> Delete(int id, CancellationToken ct)
+        public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
-            try
-            {
-                await volunteerService.DeleteAsync(id, ct);
-                return true;
-            }
-            catch { return false; }
+            await volunteerService.DeleteAsync(id, ct);
+            return NoContent();
         }
 
         [HttpPut("domains")]
-        public async Task<IActionResult> UpdateDomains([FromBody] BLVolunteerModel volunteer, CancellationToken ct)
+        public async Task<IActionResult> UpdateDomains([FromBody] UpdateVolunteerDomainsDto domains, CancellationToken ct)
         {
-            await volunteerService.UpdateVolunteerDomainsAsync(volunteer, ct);
-            return Ok();
+            await volunteerService.UpdateVolunteerDomainsAsync(domains, ct);
+            return NoContent();
         }
     }
 }

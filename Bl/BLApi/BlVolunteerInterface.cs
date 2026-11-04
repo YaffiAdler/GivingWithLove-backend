@@ -1,15 +1,11 @@
 ﻿using Bl.BLModels;
-using Dal.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Bl.Dtos.Volunteer;
 
 namespace Bl.BLApi
 {
-    public interface BlVolunteerInterface:BlICrud<BLVolunteerModel>
+    public interface BlVolunteerInterface : BlICrud<BLVolunteerModel>
     {
-        Task UpdateVolunteerDomainsAsync(BLVolunteerModel volunteer, CancellationToken ct);
+        // Throws NotFoundException when the volunteer does not exist.
+        Task UpdateVolunteerDomainsAsync(UpdateVolunteerDomainsDto domains, CancellationToken ct);
     }
 }

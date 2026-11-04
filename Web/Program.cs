@@ -1,5 +1,6 @@
 using Bl;
 using Dal;
+using Web.Errors;
 
 namespace Web
 {
@@ -17,6 +18,8 @@ namespace Web
             builder.Services.AddBusinessLogic();
 
             builder.Services.AddControllers();
+            builder.Services.AddProblemDetails();
+            builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
@@ -24,6 +27,7 @@ namespace Web
             AddFrontendCors(builder);
 
             var app = builder.Build();
+            app.UseExceptionHandler();
             app.UseCors(FrontendCorsPolicy);
             if (app.Environment.IsDevelopment())
             {
