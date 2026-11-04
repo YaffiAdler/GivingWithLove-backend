@@ -11,38 +11,38 @@ namespace Web.Controllers
     public class EichudController : ControllerBase
     {
 
-        IBl bl;
-        public EichudController(IBl bl)
+        private readonly BlEichudInterface eichudService;
+        public EichudController(BlEichudInterface eichudService)
         {
-            this.bl = bl;
+            this.eichudService = eichudService;
         }
         
         // GET: api/<EichudController>
         [HttpGet]
         public Task<List<BlEichudModel>> Get()
         {
-             return bl.Eichud.ReadAll();
+             return eichudService.ReadAll();
         }
 
         // GET api/<EichudController>/5
         [HttpGet("{id}")]
         public Task<BlEichudModel> Get(int id)
         {
-            return bl.Eichud.Read(id);
+            return eichudService.Read(id);
         }
 
         // POST api/<EichudController>
         [HttpPost]
         public void Post([FromBody] BlEichudModel value)
         {
-            bl.Eichud.Create(value);
+            eichudService.Create(value);
         }
 
         // PUT api/<EichudController>/5
         [HttpPut("{id}")]
         public void Put(int id, [FromBody] BlEichudModel value)
         {
-            bl.Eichud.Update(value);
+            eichudService.Update(value);
         }
 
         // DELETE api/<EichudController>/5
@@ -51,10 +51,10 @@ namespace Web.Controllers
         {
             try
             {
-                BlEichudModel v = bl.Eichud.ReadAll().Result.Find(e=> e.EichudCode == id);
+                BlEichudModel v = eichudService.ReadAll().Result.Find(e=> e.EichudCode == id);
                 if (v == null)
                     throw new NullReferenceException("mmm");
-                bl.Eichud.Delete(v);
+                eichudService.Delete(v);
                 return true;
             }
             catch(Exception e) { return false; }

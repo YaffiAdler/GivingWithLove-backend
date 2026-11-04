@@ -13,9 +13,9 @@ namespace Bl.BLServices
     public class BlSubProjectService : BlSubProjectInterface
     {
         private DalSubProjectInterface SubProject;
-        public BlSubProjectService(IDal dal)
+        public BlSubProjectService(DalSubProjectInterface dal)
         {
-            this.SubProject = dal.SubProject;
+            this.SubProject = dal;
         }
 
         private SubProject Convert(BlSubProjectModel s)

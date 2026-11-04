@@ -16,9 +16,9 @@ namespace Bl.BLServices
         BlVolunteerInterface volunteerInterface;
         BlProjectInterface projectInterface;
         BlSubProjectInterface subProjectInterface;
-        public BlVolunteeringService(IDal dal,BlVolunteerInterface volunteerInterface,BlProjectInterface projectInterface,BlSubProjectInterface subProjectInterface )
+        public BlVolunteeringService(DalVolunteeringInterface dal,BlVolunteerInterface volunteerInterface,BlProjectInterface projectInterface,BlSubProjectInterface subProjectInterface )
         {
-            this.dal = dal.Volunteerings;
+            this.dal = dal;
             this.volunteerInterface = volunteerInterface;
             this.subProjectInterface = subProjectInterface;
             this.projectInterface = projectInterface;
@@ -30,11 +30,8 @@ namespace Bl.BLServices
                 VolunteeringCode = v.VolunteeringCode,
                 DateOfVolunteering = v.DateOfVolunteering,
                 MatcherCode = v.MatcherCode,
-                //MatcherName = ((BLVolunteerService)volunteerInterface).Read(v.MatcherCode ?? 0).Result.VolunteerCodeNavigation.FirstName + " " + ((BLVolunteerService)volunteerInterface).Read(v.MatcherCode ?? 0).Result.VolunteerCodeNavigation.FamilyName,
                 VolunteerCode = v.VolunteerCode,
-                //VolunteerName = ((BLVolunteerService)volunteerInterface).Read(v.VolunteerCode ?? 0).Result.VolunteerCodeNavigation.FirstName + " " + ((BLVolunteerService)volunteerInterface).Read(v.VolunteerCode ?? 0).Result.VolunteerCodeNavigation.FamilyName,
                 PoorManCode = v.PoorManCode,
-                //PoorManName = ((BLVolunteerService)volunteerInterface).Read(v.PoorManCode ?? 0).Result.VolunteerCodeNavigation.FirstName + " " + ((BLVolunteerService)volunteerInterface).Read(v.PoorManCode ?? 0).Result.VolunteerCodeNavigation.FamilyName,
                 ProjectCode = v.ProjectCode,
                 SubProjectCode = v.SubProjectCode,
                 
@@ -43,16 +40,16 @@ namespace Bl.BLServices
             {
 
 
-              blV.MatcherName=  ((BLVolunteerService)volunteerInterface).Read(v.MatcherCode ?? 0).Result.VolunteerCodeNavigation.FirstName + " " + ((BLVolunteerService)volunteerInterface).Read(v.MatcherCode ?? 0).Result.VolunteerCodeNavigation.FamilyName;
-              blV.VolunteerName =  ((BLVolunteerService)volunteerInterface).Read(v.VolunteerCode ?? 0).Result.VolunteerCodeNavigation.FirstName + " " + ((BLVolunteerService)volunteerInterface).Read(v.VolunteerCode ?? 0).Result.VolunteerCodeNavigation.FamilyName;
-              blV.PoorManName = ((BLVolunteerService)volunteerInterface).Read(v.PoorManCode ?? 0).Result.VolunteerCodeNavigation.FirstName + " " + ((BLVolunteerService)volunteerInterface).Read(v.PoorManCode ?? 0).Result.VolunteerCodeNavigation.FamilyName;
+              blV.MatcherName=  volunteerInterface.Read(v.MatcherCode ?? 0).Result.VolunteerCodeNavigation.FirstName + " " + volunteerInterface.Read(v.MatcherCode ?? 0).Result.VolunteerCodeNavigation.FamilyName;
+              blV.VolunteerName =  volunteerInterface.Read(v.VolunteerCode ?? 0).Result.VolunteerCodeNavigation.FirstName + " " + volunteerInterface.Read(v.VolunteerCode ?? 0).Result.VolunteerCodeNavigation.FamilyName;
+              blV.PoorManName = volunteerInterface.Read(v.PoorManCode ?? 0).Result.VolunteerCodeNavigation.FirstName + " " + volunteerInterface.Read(v.PoorManCode ?? 0).Result.VolunteerCodeNavigation.FamilyName;
               
             }
            if(v.ProjectCode != null)
-                blV.ProjectName = ((BlProjectService)projectInterface).Read(v.ProjectCode ?? 0).Result.ProjectName;
+                blV.ProjectName = projectInterface.Read(v.ProjectCode ?? 0).Result.ProjectName;
            if(v.SubProjectCode != null)
                 
-                blV.SubProjectName = ((BlSubProjectService)subProjectInterface).Read(v.SubProjectCode ?? 0).Result.SubProjectName;
+                blV.SubProjectName = subProjectInterface.Read(v.SubProjectCode ?? 0).Result.SubProjectName;
             return blV;
             
               
@@ -115,8 +112,6 @@ namespace Bl.BLServices
 
         public async Task<BlVolunteeringModel> Read(int id)
         {
-           //BLVolunteeringModel model=Convert(dal.ReadAll().Result.Find(v=>v.VolunteerCode==id));
-           //return Convert(dal.Read(id).Result);
 
             try { return Convert(dal.Read(id).Result); }
             catch (ObjectNotFoundException e)

@@ -1,5 +1,6 @@
 ﻿using Bl.BLApi;
 using Bl.BLModels;
+using Bl.Mapping;
 using Dal.Api;
 using Dal.Models;
 using System;
@@ -13,31 +14,27 @@ namespace Bl.BLServices
     public class BLVolunteerService : BlVolunteerInterface
     {
         DalVolunteerInterface Volunteer;
-        BlEichudInterface BlEichud;
-        BlVolunteerDomainInterface BlDomain;
         BlPositionInterface BlPosition;
 
-        public BLVolunteerService(IDal dal,BlEichudInterface blEichud,BlVolunteerDomainInterface _blDomain ,BlPositionInterface blPosition)
+        public BLVolunteerService(DalVolunteerInterface volunteer, BlPositionInterface blPosition)
         {
-            this.Volunteer = dal.Volunteer;
-            this.BlEichud = blEichud;
-            this.BlDomain = _blDomain;
+            this.Volunteer = volunteer;
             this.BlPosition = blPosition;
         }
         private Volunteer Convert(BLVolunteerModel v)
         {
             return new Volunteer() { VolunteerCode = v.VolunteerCode, PositionCode = v.PositionCode,
-            VolunteerDomains = v.VolunteerDomains.Select(x => ((BlVolunteerDomainService)BlDomain).Convert(x)).ToList()
+            VolunteerDomains = v.VolunteerDomains.Select(VolunteerDomainMapper.ToEntity).ToList()
             };
         }
         private BLVolunteerModel Convert(Volunteer v)
         {
-             BLVolunteerModel blv =  new BLVolunteerModel() { VolunteerCode = v.VolunteerCode, PositionCode = v.PositionCode ,VolunteerCodeNavigation=((BlEichudService) BlEichud).convert( v.VolunteerCodeNavigation),
-                VolunteerDomains = v.VolunteerDomains.Select(x => ((BlVolunteerDomainService)BlDomain).Convert(x)).ToList()
+             BLVolunteerModel blv =  new BLVolunteerModel() { VolunteerCode = v.VolunteerCode, PositionCode = v.PositionCode ,VolunteerCodeNavigation=EichudMapper.ToModel( v.VolunteerCodeNavigation),
+                VolunteerDomains = v.VolunteerDomains.Select(VolunteerDomainMapper.ToModel).ToList()
             };
             if (blv.PositionCode != null)
             {
-                blv.PositionName = ((BlPositionService)BlPosition).Read(v.PositionCode ?? 0).Result.positionName;
+                blv.PositionName = BlPosition.Read(v.PositionCode ?? 0).Result.positionName;
             }
             return blv;
         }
@@ -57,7 +54,6 @@ namespace Bl.BLServices
  
             Volunteer.Create(Convert(item));
             
-            //item.VolunteerDomains.ToList().ForEach(x => BlDomain.Create(x));
         }
 
         public void Delete(BLVolunteerModel item)
@@ -92,7 +88,6 @@ namespace Bl.BLServices
 
         public void Update(BLVolunteerModel item)
         {   
-            //item.VolunteerDomains.ToList().ForEach(x => BlDomain.Create(x));
             var tt = Convert(item);
 
             Volunteer.Update(tt);

@@ -14,9 +14,9 @@ namespace Bl.BLServices
     {
 
         DalPositionInterface dal;
-        public BlPositionService(IDal dal)
+        public BlPositionService(DalPositionInterface dal)
         {
-            this.dal = dal.Position;
+            this.dal = dal;
         }
         private BlPositionModel convert(Position p)
         {
@@ -58,10 +58,6 @@ namespace Bl.BLServices
             var data = await dal.Read(id);
             return convert(data);
         }
-        //public async Task<BlPositionModel> Read(int id)
-        //{
-        //    return convert(dal.Read(id).Result);
-        //}
         public async Task<List<BlPositionModel>> Read(Func<BlPositionModel, bool> func)
         {
             var data = await dal.ReadAll();
@@ -70,24 +66,11 @@ namespace Bl.BLServices
                 .Where(func)
                 .ToList();
         }
-        //public async Task<List<BlPositionModel>> Read(Func<BlPositionModel, bool> func)
-        //{
-        //    List<BlPositionModel> list =
-        //        convert(dal.Read((Func<Position, bool>)func).Result);
-        //        return list;
-        //}
         public async Task<List<BlPositionModel>> ReadAll()
         {
             var data = await dal.ReadAll();
             return data.Select(item => convert(item)).ToList();
         }
-        //public async Task<List<BlPositionModel>> ReadAll()
-        //{
-        //    List<BlPositionModel> list = new List<BlPositionModel>();
-        //    dal.ReadAll().Result.ForEach(item => { list.Add(convert(item)); });
-        //    //convert(dal.ReadAll().Result);
-        //    return list;
-        //}
 
         public void Update(BlPositionModel item)
         {

@@ -13,9 +13,9 @@ namespace Bl.BLServices
     public class BlProjectService : BlProjectInterface
     {
         private DalProjectInterface Project;
-        public BlProjectService(IDal dal)
+        public BlProjectService(DalProjectInterface dal)
         {
-            this.Project = dal.Project;
+            this.Project = dal;
         }
 
 

@@ -1,5 +1,6 @@
 ﻿using Bl.BLApi;
 using Bl.BLModels;
+using Bl.Mapping;
 using Dal.Api;
 using Dal.Models;
 using System;
@@ -13,66 +14,27 @@ namespace Bl.BLServices
     public class BlEichudService : BlEichudInterface
     {
         DalEichudInterface dal;
-        public BlEichudService(IDal dal)
+        public BlEichudService(DalEichudInterface dal)
         {
-            this.dal = dal.Eichud;
-        }
-        public  BlEichudModel convert(Eichud eichud)
-        {
-            return new BlEichudModel(){
-                EichudCode = eichud.EichudCode,
-                Tohar = eichud.Tohar,
-                FamilyName = eichud.FamilyName,
-                FirstName = eichud.FirstName,
-                Ending = eichud.Ending,
-                FathersName = eichud.FathersName,
-                Shtibel = eichud.Shtibel,
-                Street = eichud.Street,
-                House = eichud.House,
-                City = eichud.City,
-                ZipCode = eichud.ZipCode,
-                HousePhone = eichud.HousePhone,
-                CellPhone = eichud.CellPhone,
-                Shver = eichud.Shver
-            };
-        }
-        public Eichud convert(BlEichudModel eichud)
-        {
-            return new Eichud()
-            {
-                EichudCode = eichud.EichudCode,
-                Tohar = eichud.Tohar,
-                FamilyName = eichud.FamilyName,
-                FirstName = eichud.FirstName,
-                Ending = eichud.Ending,
-                FathersName = eichud.FathersName,
-                Shtibel = eichud.Shtibel,
-                Street = eichud.Street,
-                House = eichud.House,
-                City = eichud.City,
-                ZipCode = eichud.ZipCode,
-                HousePhone = eichud.HousePhone,
-                CellPhone = eichud.CellPhone,
-                Shver = eichud.Shver
-            };
+            this.dal = dal;
         }
         private List<BlEichudModel> convert(List<Eichud> v)
         {
             List<BlEichudModel> list = new List<BlEichudModel>();
             foreach (var item in v)
             {
-                list.Add(convert(item));
+                list.Add(EichudMapper.ToModel(item));
             }
             return list;
         }
         public void Create(BlEichudModel item)
         {
-            dal.Create(convert(item));
+            dal.Create(EichudMapper.ToEntity(item));
         }
 
         public void Delete(BlEichudModel item)
         {
-            dal.Delete(convert(item));
+            dal.Delete(EichudMapper.ToEntity(item));
         }
 
         public async Task<List<BlEichudModel>> Read(Func<BlEichudModel, bool> func)
@@ -84,24 +46,23 @@ namespace Bl.BLServices
 
         public async Task<BlEichudModel> Read(int id)
         {
-            try { return convert(dal.Read(id).Result); }
+            try { return EichudMapper.ToModel(dal.Read(id).Result); }
             catch (ObjectNotFoundException e)
             {
                 return null;
             }
-            //return convert(dal.Read(convert(item).Result));
         }
 
         public async Task<List<BlEichudModel>> ReadAll()
         {
             List<BlEichudModel> list = new List<BlEichudModel>();
-            dal.ReadAll().Result.ForEach(item => { list.Add(convert(item)); });
+            dal.ReadAll().Result.ForEach(item => { list.Add(EichudMapper.ToModel(item)); });
             return list;
         }
 
         public void Update(BlEichudModel item)
         {
-            dal.Update(convert(item));
+            dal.Update(EichudMapper.ToEntity(item));
         }
 
        

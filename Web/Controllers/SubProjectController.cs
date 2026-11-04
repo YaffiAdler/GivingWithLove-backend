@@ -11,23 +11,23 @@ namespace Web.Controllers
     public class SubProjectController : ControllerBase
     {
 
-        IBl bl;
-        public SubProjectController(IBl bl)
+        private readonly BlSubProjectInterface subProjectService;
+        public SubProjectController(BlSubProjectInterface subProjectService)
         {
-            this.bl = bl;
+            this.subProjectService = subProjectService;
         }
         // GET: api/<SubProjectController>
         [HttpGet]
         public Task<List<BlSubProjectModel>> Get()
         {
-            return bl.SubProject.ReadAll();
+            return subProjectService.ReadAll();
         }
 
         // GET api/<SubProjectController>/5
         [HttpGet("{id}")]
         public Task<BlSubProjectModel> Get(int id)
         {
-            return bl.SubProject.Read(id);
+            return subProjectService.Read(id);
 
         }
 
@@ -37,7 +37,7 @@ namespace Web.Controllers
         {
             try
             {
-                bl.SubProject.Create(s);
+                subProjectService.Create(s);
                 return true;
             }
             catch { return false; }
@@ -49,7 +49,7 @@ namespace Web.Controllers
         {
             try
             {
-                bl.SubProject.Update(s);
+                subProjectService.Update(s);
                 return true;
             }
             catch { return false; }
@@ -61,7 +61,7 @@ namespace Web.Controllers
         {
             try
             {
-                bl.SubProject.Delete(s);
+                subProjectService.Delete(s);
                 return true;
             }
             catch { return false; }

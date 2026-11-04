@@ -1,37 +1,30 @@
-
 using Bl;
-using Bl.BLApi;
-using Dal.Models;
-using Microsoft.EntityFrameworkCore;
-using System.Text.Json.Serialization;
+using Dal;
 
 namespace Web
 {
     public class Program
     {
+        private const string FrontendCorsPolicy = "Frontend";
+        private const string AllowedOriginsSection = "Cors:AllowedOrigins";
+
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-            builder.Services.AddSingleton<IBl, BlManager>();// new blmanager
+            // Composition root: the only place in Web that knows about Dal.
+            builder.Services.AddDataAccess(builder.Configuration);
+            builder.Services.AddBusinessLogic();
+
             builder.Services.AddControllers();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            builder.Services.AddCors(o => o.AddPolicy("MyPolicy", builder =>
-            {
-                builder.WithOrigins("http://localhost:4200")
-                       .AllowAnyMethod()
-                       .AllowAnyHeader();
-            }));
-
-
+            AddFrontendCors(builder);
 
             var app = builder.Build();
-            app.UseCors("MyPolicy");
-            // Configure the HTTP request pipeline.
+            app.UseCors(FrontendCorsPolicy);
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -42,28 +35,37 @@ namespace Web
             app.MapControllers();
             app.Run();
         }
+
+        private static void AddFrontendCors(WebApplicationBuilder builder)
+        {
+            if (builder.Environment.IsDevelopment())
+            {
+                // Any localhost port: ng serve falls back to another port when 4200 is taken.
+                builder.Services.AddCors(options => options.AddPolicy(FrontendCorsPolicy, policy =>
+                    policy.SetIsOriginAllowed(IsLocalhostOrigin)
+                          .AllowAnyMethod()
+                          .AllowAnyHeader()));
+                return;
+            }
+
+            string[] allowedOrigins = builder.Configuration.GetSection(AllowedOriginsSection).Get<string[]>() ?? [];
+            if (allowedOrigins.Length == 0)
+            {
+                throw new InvalidOperationException(
+                    $"No CORS origins configured. Set '{AllowedOriginsSection}' for the '{builder.Environment.EnvironmentName}' environment.");
+            }
+
+            builder.Services.AddCors(options => options.AddPolicy(FrontendCorsPolicy, policy =>
+                policy.WithOrigins(allowedOrigins)
+                      .AllowAnyMethod()
+                      .AllowAnyHeader()));
+        }
+
+        private static bool IsLocalhostOrigin(string origin)
+        {
+            return Uri.TryCreate(origin, UriKind.Absolute, out Uri? uri)
+                && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
+                && uri.Host == "localhost";
+        }
     }
 }
-
-
-//using System.Text.Json.Serialization;
-//using Dal.Models;
-//using Microsoft.EntityFrameworkCore;
-//var builder = WebApplication.CreateBuilder(args);
-//// Register DbContext as scoped (one per request)
-//builder.Services.AddDbContext<DbManager>(options =>
-//    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-//// Configure controllers and ignore reference cycles (temporary; prefer DTOs)
-//builder.Services.AddControllers().AddJsonOptions(opts =>
-//{
-//    opts.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-//    opts.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
-//});
-//var app = builder.Build();
-//if (app.Environment.IsDevelopment())
-//{
-//    app.UseDeveloperExceptionPage();
-//}
-
-//app.MapControllers();
-//app.Run();
