@@ -1,6 +1,6 @@
 @Web_HostAddress = http://localhost:5269
 
-GET {{Web_HostAddress}}/weatherforecast/
+GET {{Web_HostAddress}}/api/Volunteering
 Accept: application/json
 
 ###

@@ -1,16 +1,20 @@
-﻿using Bl.BLApi;
-using Bl.BLModels;
-using Dal.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Bl.Dtos.Volunteering;
 
 namespace Dal.Api
 {
-    public interface BlVolunteeringInterface:BlICrud<BlVolunteeringModel>
+    // Read and write models differ, so this interface does not extend BlICrud<T>.
+    public interface BlVolunteeringInterface
     {
+        Task<List<VolunteeringDto>> GetAllAsync(VolunteeringFilterDto filter, CancellationToken ct);
 
+        Task<VolunteeringDto?> GetByIdAsync(int id, CancellationToken ct);
+
+        Task<VolunteeringDto> CreateAsync(CreateVolunteeringDto item, CancellationToken ct);
+
+        // Throws NotFoundException when the item does not exist.
+        Task UpdateAsync(UpdateVolunteeringDto item, CancellationToken ct);
+
+        // Throws NotFoundException when the item does not exist.
+        Task DeleteAsync(int id, CancellationToken ct);
     }
 }

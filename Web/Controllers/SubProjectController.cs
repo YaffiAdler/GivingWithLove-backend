@@ -1,6 +1,7 @@
 ﻿using Bl.BLApi;
 using Bl.BLModels;
 using Microsoft.AspNetCore.Mvc;
+using Web.Errors;
 
 namespace Web.Controllers
 {
@@ -9,54 +10,47 @@ namespace Web.Controllers
     public class SubProjectController : ControllerBase
     {
         private readonly BlSubProjectInterface subProjectService;
+
         public SubProjectController(BlSubProjectInterface subProjectService)
         {
             this.subProjectService = subProjectService;
         }
 
         [HttpGet]
-        public async Task<List<BlSubProjectModel>> Get(CancellationToken ct)
+        public async Task<ActionResult<List<BlSubProjectModel>>> GetAll(CancellationToken ct)
         {
             return await subProjectService.GetAllAsync(ct);
         }
 
         [HttpGet("{id}")]
-        public async Task<BlSubProjectModel?> Get(int id, CancellationToken ct)
+        public async Task<ActionResult<BlSubProjectModel>> GetById(int id, CancellationToken ct)
         {
-            return await subProjectService.GetByIdAsync(id, ct);
+            BlSubProjectModel? subProject = await subProjectService.GetByIdAsync(id, ct);
+            return subProject == null ? NotFound() : subProject;
         }
 
         [HttpPost]
-        public async Task<bool> Post(BlSubProjectModel subProject, CancellationToken ct)
+        public async Task<ActionResult<BlSubProjectModel>> Create([FromBody] BlSubProjectModel subProject, CancellationToken ct)
         {
-            try
-            {
-                await subProjectService.CreateAsync(subProject, ct);
-                return true;
-            }
-            catch { return false; }
+            BlSubProjectModel created = await subProjectService.CreateAsync(subProject, ct);
+            return CreatedAtAction(nameof(GetById), new { id = created.SubProjectCode }, created);
         }
 
         [HttpPut("{id}")]
-        public async Task<bool> Put(int id, BlSubProjectModel subProject, CancellationToken ct)
+        public async Task<IActionResult> Update(int id, [FromBody] BlSubProjectModel subProject, CancellationToken ct)
         {
-            try
-            {
-                await subProjectService.UpdateAsync(subProject, ct);
-                return true;
-            }
-            catch { return false; }
+            if (subProject.SubProjectCode != id)
+                return this.IdMismatchProblem(id, subProject.SubProjectCode);
+
+            await subProjectService.UpdateAsync(subProject, ct);
+            return NoContent();
         }
 
         [HttpDelete("{id}")]
-        public async Task<bool> Delete(int id, CancellationToken ct)
+        public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
-            try
-            {
-                await subProjectService.DeleteAsync(id, ct);
-                return true;
-            }
-            catch { return false; }
+            await subProjectService.DeleteAsync(id, ct);
+            return NoContent();
         }
     }
 }

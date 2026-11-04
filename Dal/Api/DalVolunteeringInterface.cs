@@ -1,14 +1,12 @@
 ﻿using Dal.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Dal.Queries;
 
 namespace Dal.Api
 {
-    public interface DalVolunteeringInterface:ICrud<Volunteering>
+    public interface DalVolunteeringInterface : ICrud<Volunteering>
     {
+        Task<List<VolunteeringRow>> GetRowsAsync(VolunteeringFilter filter, CancellationToken ct);
 
+        Task<VolunteeringRow?> GetRowByIdAsync(int id, CancellationToken ct);
     }
 }

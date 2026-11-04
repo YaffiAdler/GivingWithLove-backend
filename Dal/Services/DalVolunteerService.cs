@@ -53,14 +53,15 @@ namespace Dal.Services
             return true;
         }
 
-        public async Task UpdateVolunteerDomainsAsync(Volunteer volunteer, CancellationToken ct)
+        public async Task<bool> UpdateVolunteerDomainsAsync(int volunteerCode, IReadOnlyCollection<int> projectCodes, CancellationToken ct)
         {
-            HashSet<int> requestedProjectCodes = volunteer.VolunteerDomains
-                .Select(domain => domain.ProjectCode)
-                .ToHashSet();
+            if (!await db.Volunteers.AnyAsync(volunteer => volunteer.VolunteerCode == volunteerCode, ct))
+                return false;
+
+            HashSet<int> requestedProjectCodes = projectCodes.ToHashSet();
 
             List<VolunteerDomain> existingDomains = await db.VolunteerDomains
-                .Where(domain => domain.VolunteerCode == volunteer.VolunteerCode)
+                .Where(domain => domain.VolunteerCode == volunteerCode)
                 .ToListAsync(ct);
 
             HashSet<int> existingProjectCodes = existingDomains
@@ -74,7 +75,7 @@ namespace Dal.Services
             {
                 db.VolunteerDomains.Add(new VolunteerDomain
                 {
-                    VolunteerCode = volunteer.VolunteerCode,
+                    VolunteerCode = volunteerCode,
                     ProjectCode = projectCode
                 });
             }
@@ -82,6 +83,7 @@ namespace Dal.Services
             db.VolunteerDomains.RemoveRange(domainsToRemove);
 
             await db.SaveChangesAsync(ct);
+            return true;
         }
 
         private IQueryable<Volunteer> VolunteersWithDetails()

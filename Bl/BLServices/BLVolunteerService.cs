@@ -1,5 +1,6 @@
 ﻿using Bl.BLApi;
 using Bl.BLModels;
+using Bl.Dtos.Volunteer;
 using Bl.Exceptions;
 using Bl.Mapping;
 using Dal.Api;
@@ -58,9 +59,10 @@ namespace Bl.BLServices
                 throw new NotFoundException(EntityName, id);
         }
 
-        public async Task UpdateVolunteerDomainsAsync(BLVolunteerModel volunteer, CancellationToken ct)
+        public async Task UpdateVolunteerDomainsAsync(UpdateVolunteerDomainsDto domains, CancellationToken ct)
         {
-            await dal.UpdateVolunteerDomainsAsync(ToEntity(volunteer), ct);
+            if (!await dal.UpdateVolunteerDomainsAsync(domains.VolunteerCode, domains.ProjectCodes, ct))
+                throw new NotFoundException(EntityName, domains.VolunteerCode);
         }
 
         private static Volunteer ToEntity(BLVolunteerModel volunteer)
@@ -69,7 +71,8 @@ namespace Bl.BLServices
             {
                 VolunteerCode = volunteer.VolunteerCode,
                 PositionCode = volunteer.PositionCode,
-                VolunteerDomains = volunteer.VolunteerDomains.Select(VolunteerDomainMapper.ToEntity).ToList()
+                // A create request may omit the domains; that means the volunteer has none yet.
+                VolunteerDomains = (volunteer.VolunteerDomains ?? []).Select(VolunteerDomainMapper.ToEntity).ToList()
             };
         }
 
