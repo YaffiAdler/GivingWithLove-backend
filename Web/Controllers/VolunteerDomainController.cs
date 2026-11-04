@@ -1,5 +1,8 @@
 ﻿using Bl.BLApi;
 using Bl.BLModels;
+// BlVolunteerDomainInterface lives in namespace Dal.Api until BE-04 fixes it.
+using Dal.Api;
+// BlVolunteerDomainModel lives in namespace Dal.Models until BE-04 fixes it.
 using Dal.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,37 +14,37 @@ namespace Web.Controllers
     [ApiController]
     public class VolunteerDomainController : ControllerBase
     {
-        IBl bl;
-        public VolunteerDomainController(IBl bl)
+        private readonly BlVolunteerDomainInterface volunteerDomainService;
+        public VolunteerDomainController(BlVolunteerDomainInterface volunteerDomainService)
         {
-            this.bl = bl;
+            this.volunteerDomainService = volunteerDomainService;
         }
         // GET: api/<VolunteeringController>
         [HttpGet]
         public Task<List<BlVolunteerDomainModel>> Get()
         {
-            return bl.VolunteerDomains.ReadAll();
+            return volunteerDomainService.ReadAll();
         }
 
         // GET api/<VolunteeringController>/5
         [HttpGet("{id}")]
         public Task<BlVolunteerDomainModel> Get(int id)
         {
-            return bl.VolunteerDomains.Read(id);
+            return volunteerDomainService.Read(id);
         }
 
         // POST api/<VolunteeringController>
         [HttpPost]
         public void Post([FromBody] BlVolunteerDomainModel v)
         {
-            bl.VolunteerDomains.Create(v);
+            volunteerDomainService.Create(v);
         }
 
         // PUT api/<VolunteeringController>/5
         [HttpPut("{id}")]
         public void Put(int id, [FromBody] BlVolunteerDomainModel v)
         {
-            bl.VolunteerDomains.Update(v);
+            volunteerDomainService.Update(v);
 
         }
 
@@ -49,7 +52,7 @@ namespace Web.Controllers
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
-            bl.VolunteerDomains.Delete(Get(id).Result);
+            volunteerDomainService.Delete(Get(id).Result);
         }
     }
 }

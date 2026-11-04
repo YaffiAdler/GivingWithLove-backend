@@ -10,38 +10,38 @@ namespace Web.Controllers
     [ApiController]
     public class PositionController : ControllerBase
     {
-        IBl bl;
-        public PositionController(IBl bl)
+        private readonly BlPositionInterface positionService;
+        public PositionController(BlPositionInterface positionService)
         {
-            this.bl = bl;
+            this.positionService = positionService;
         }
         // GET: api/<PositionController>
         [HttpGet]
 
         public Task<List<BlPositionModel>> Get()
         {
-            return bl.Position.ReadAll();
+            return positionService.ReadAll();
         }
         
         // GET api/<PositionController>/5
         [HttpGet("{id}")]
         public Task<BlPositionModel> Get(int id)
         {
-            return bl.Position.Read(id);
+            return positionService.Read(id);
         }
 
         // POST api/<PositionController>
         [HttpPost]
         public void Post([FromBody] BlPositionModel value)
         {
-            bl.Position.Create(value);
+            positionService.Create(value);
         }
         
         // PUT api/<PositionController>/5
         [HttpPut("{id}")]
         public void Put(int id, [FromBody] BlPositionModel value)
         {
-            bl.Position.Update(value);
+            positionService.Update(value);
         }
         
         // DELETE api/<PositionController>/5
@@ -50,7 +50,7 @@ namespace Web.Controllers
         {
             try
             {
-                bl.Position.Delete(id);
+                positionService.Delete(id);
                 return true;
             }
             catch { return false; }

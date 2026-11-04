@@ -1,16 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Dal.Models;
 
 public partial class DbManager : DbContext
 {
-    public DbManager()
-    {
-    }
-
     public DbManager(DbContextOptions<DbManager> options)
         : base(options)
     {
@@ -30,15 +25,6 @@ public partial class DbManager : DbContext
 
     public virtual DbSet<Volunteering> Volunteerings { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-//#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-      
-        => 
-        //optionsBuilder.UseSqlServer(" Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=\"D:\\אדלר יפי\\C#\\GivingWithLove-c\\Dal\\GWLData.mdf\";Integrated Security = True;Connect Timeout=30\n");
-
-    optionsBuilder.UseSqlServer(
-    "Data Source=(LocalDB)\\MSSQLLocalDB;AttachDbFilename=D:\\אדלר יפי\\C#\\GivingWithLove-c\\Dal\\GWLData.mdf;Integrated Security=True;Connect Timeout=30"
-);
     protected override void OnModelCreating(ModelBuilder modelBuilder)
 
 
@@ -197,10 +183,6 @@ public partial class DbManager : DbContext
         OnModelCreatingPartial(modelBuilder);
     }
 
-    //internal void saveChanges()
-    //{
-    //    throw new NotImplementedException();
-    //}
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

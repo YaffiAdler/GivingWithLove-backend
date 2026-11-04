@@ -11,23 +11,23 @@ namespace Web.Controllers
     public class ProjectController : ControllerBase
     {
 
-        IBl bl;
-        public ProjectController(IBl bl)
+        private readonly BlProjectInterface projectService;
+        public ProjectController(BlProjectInterface projectService)
         {
-            this.bl = bl;
+            this.projectService = projectService;
         }
         // GET: api/<ProjectController>
         [HttpGet]
         public Task<List<BlProjectModel>> Get()
         {
-            return bl.Project.ReadAll();
+            return projectService.ReadAll();
         }
 
         // GET api/<ProjectController>/5
         [HttpGet("{id}")]
         public Task<BlProjectModel> Get(int id)
         {
-            return bl.Project.Read(id);
+            return projectService.Read(id);
         }
 
         // POST api/<ProjectController>
@@ -36,7 +36,7 @@ namespace Web.Controllers
         {
             try
             {
-                bl.Project.Create(s);
+                projectService.Create(s);
                 return true;
             }
             catch { return false; }
@@ -48,7 +48,7 @@ namespace Web.Controllers
         {
             try
             {
-                bl.Project.Update(s);
+                projectService.Update(s);
                 return true;
             }
             catch { return false; }
@@ -60,7 +60,7 @@ namespace Web.Controllers
         {
             try
             {
-                bl.Project.Delete(s);
+                projectService.Delete(s);
                 return true;
             }
             catch { return false; }

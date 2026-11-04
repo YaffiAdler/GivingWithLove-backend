@@ -1,6 +1,5 @@
 ﻿using Bl.BLApi;
 using Bl.BLModels;
-using Dal.Models;
 using Microsoft.AspNetCore.Mvc;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -12,24 +11,24 @@ namespace Web.Controllers
     public class VolunteerController : ControllerBase
     {
 
-        IBl bl;
-        public VolunteerController(IBl bl)
+        private readonly BlVolunteerInterface volunteerService;
+        public VolunteerController(BlVolunteerInterface volunteerService)
         {
-            this.bl = bl;
+            this.volunteerService = volunteerService;
         }
 
         // GET: api/<VolunteerController>
         [HttpGet]
         public Task<List<BLVolunteerModel>> Get()
         {
-            return bl.Volunteer.ReadAll();
+            return volunteerService.ReadAll();
         }
 
         // GET api/<VolunteerController>/5
         [HttpGet("{id}")]
         public Task<BLVolunteerModel> Get(int id)
         {                   
-            return bl.Volunteer.Read(id);
+            return volunteerService.Read(id);
         }
 
         // POST api/<VolunteerController>
@@ -37,7 +36,7 @@ namespace Web.Controllers
         public bool Post(BLVolunteerModel v)
         {
             try { 
-                bl.Volunteer.Create(v);
+                volunteerService.Create(v);
                 return true; }
             catch (Exception ex)
             {
@@ -53,7 +52,7 @@ namespace Web.Controllers
             try
             {
                 
-                bl.Volunteer.Update(v);
+                volunteerService.Update(v);
                 return true;
             }
             catch { return false; }
@@ -66,7 +65,7 @@ namespace Web.Controllers
         {
             try
             {
-                bl.Volunteer.Delete(v);
+                volunteerService.Delete(v);
                 return true;
             }
             catch { return false; }
@@ -74,7 +73,7 @@ namespace Web.Controllers
         [HttpPut("domains")]
         public async Task<IActionResult> UpdateDomains([FromBody] BLVolunteerModel dto)
         {
-            await bl.Volunteer.UpdateVolunteerDomains(dto);
+            await volunteerService.UpdateVolunteerDomains(dto);
             return Ok();
         }
 

@@ -1,7 +1,7 @@
 ﻿using Bl.BLApi;
 using Bl.BLModels;
+// BlVolunteeringInterface lives in namespace Dal.Api until BE-04 fixes it.
 using Dal.Api;
-using Dal.Models;
 using Microsoft.AspNetCore.Mvc;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -12,18 +12,17 @@ namespace Web.Controllers
     [ApiController]
     public class VolunteeringController : ControllerBase
     {
-        IBl bl;
-        public VolunteeringController(IBl bl)
+        private readonly BlVolunteeringInterface volunteeringService;
+        public VolunteeringController(BlVolunteeringInterface volunteeringService)
         {
-            this.bl = bl;
+            this.volunteeringService = volunteeringService;
         }
         // GET: api/<VolunteeringController>
         [HttpGet]
         public Task<List<BlVolunteeringModel >> Get()
         {
-            //return bl.Volunteerings.ReadAll();
           
-                var volunteers = bl.Volunteerings.ReadAll();
+                var volunteers = volunteeringService.ReadAll();
                 if (volunteers == null )
                 {
                     return ObjectNotFoundException();
@@ -40,21 +39,21 @@ namespace Web.Controllers
         [HttpGet("{id}")]
         public Task<BlVolunteeringModel> Get(int id)
         {
-            return bl.Volunteerings.Read(id);
+            return volunteeringService.Read(id);
         }
 
         // POST api/<VolunteeringController>
         [HttpPost]
         public void Post([FromBody] BlVolunteeringModel v)
         {
-            bl.Volunteerings.Create(v);
+            volunteeringService.Create(v);
         }
 
         // PUT api/<VolunteeringController>/5
         [HttpPut("{id}")]
         public void Put(int id, [FromBody] BlVolunteeringModel v)
         {
-            bl.Volunteerings.Update(v);
+            volunteeringService.Update(v);
 
         }
 
@@ -62,7 +61,7 @@ namespace Web.Controllers
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
-            bl.Volunteerings.Delete(Get(id).Result);
+            volunteeringService.Delete(Get(id).Result);
         }
     }
 }

@@ -7,7 +7,7 @@ Built with **C# / ASP.NET Core** in a clean three-layer architecture. Works toge
 - C# / ASP.NET Core Web API
 - Entity Framework Core + SQL Server (LocalDB)
 - Swagger / OpenAPI
-- CORS configured for the Angular dev server (`http://localhost:4200`)
+- CORS: in Development any `http(s)://localhost:<port>` origin; other environments use `Cors:AllowedOrigins`
 
 ## Architecture
 ```
@@ -16,8 +16,10 @@ givingWithLove.sln
 ├── Bl    – Business logic: services, models (DTOs), custom exceptions
 └── Dal   – Data access: EF Core DbContext, entities, repositories
 ```
-- Each layer talks to the next only through interfaces (`IBl`, `IDal`, generic `ICrud`), so layers are easy to test and replace.
-- `BlManager` / `DalManager` expose the services; the Web layer receives `IBl` through dependency injection.
+- Each layer talks to the next only through interfaces (one per entity, generic `BlICrud` / `ICrud`), so layers are easy to test and replace.
+- Services are registered in ASP.NET Core dependency injection with a scoped `DbManager` (one per request):
+  `Dal/DependencyInjection.cs` (`AddDataAccess`) and `Bl/DependencyInjection.cs` (`AddBusinessLogic`), called from `Web/Program.cs`.
+  Controllers receive the specific Bl interface they need.
 
 ## Domain entities
 Volunteer · Volunteer Domain · Volunteering · Project · Sub-Project · Position · Eichud
@@ -43,7 +45,13 @@ Full interactive documentation is available in Swagger when running in Developme
    ```bash
    git clone https://github.com/YaffiAdler/GivingWithLove-backend.git
    ```
-2. Set the connection string in `Web/appsettings.json` (`ConnectionStrings:DefaultConnection`) to point at your local `GWLData.mdf`.
+2. Set the connection string with user-secrets (it is never stored in `appsettings.json`):
+   ```bash
+   dotnet user-secrets init --project Web
+   dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<your LocalDB connection string>" --project Web
+   ```
+   Example value: `Data Source=(LocalDB)\MSSQLLocalDB;AttachDbFilename=<full path to>\GWLData.mdf;Integrated Security=True;Connect Timeout=30`.
+   The API stops at startup with a clear message if the connection string is missing.
 3. Run the API
    ```bash
    dotnet run --project Web
@@ -54,7 +62,7 @@ Full interactive documentation is available in Swagger when running in Developme
 ## Local database
 - The database file (`GWLData.mdf` / `.ldf`) is **not** stored in git (`*.mdf` and `*.ldf` are ignored).
 - The owner keeps it locally in `Dal/`. Never delete, move or overwrite it.
-- The connection string will be set per machine with `dotnet user-secrets`; the exact command is added in task BE-01.
+- The connection string is set per machine with `dotnet user-secrets` (see Getting started, step 2).
 
 ## Roadmap
 - Authentication & authorization (JWT)
