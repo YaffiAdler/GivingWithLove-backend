@@ -2,63 +2,51 @@
 using Bl.BLModels;
 using Microsoft.AspNetCore.Mvc;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
 namespace Web.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class EichudController : ControllerBase
     {
-
         private readonly BlEichudInterface eichudService;
         public EichudController(BlEichudInterface eichudService)
         {
             this.eichudService = eichudService;
         }
-        
-        // GET: api/<EichudController>
+
         [HttpGet]
-        public Task<List<BlEichudModel>> Get()
+        public async Task<List<BlEichudModel>> Get(CancellationToken ct)
         {
-             return eichudService.ReadAll();
+            return await eichudService.GetAllAsync(ct);
         }
 
-        // GET api/<EichudController>/5
         [HttpGet("{id}")]
-        public Task<BlEichudModel> Get(int id)
+        public async Task<BlEichudModel?> Get(int id, CancellationToken ct)
         {
-            return eichudService.Read(id);
+            return await eichudService.GetByIdAsync(id, ct);
         }
 
-        // POST api/<EichudController>
         [HttpPost]
-        public void Post([FromBody] BlEichudModel value)
+        public async Task Post([FromBody] BlEichudModel value, CancellationToken ct)
         {
-            eichudService.Create(value);
+            await eichudService.CreateAsync(value, ct);
         }
 
-        // PUT api/<EichudController>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] BlEichudModel value)
+        public async Task Put(int id, [FromBody] BlEichudModel value, CancellationToken ct)
         {
-            eichudService.Update(value);
+            await eichudService.UpdateAsync(value, ct);
         }
 
-        // DELETE api/<EichudController>/5
         [HttpDelete("{id}")]
-        public bool Delete(int id)
+        public async Task<bool> Delete(int id, CancellationToken ct)
         {
             try
             {
-                BlEichudModel v = eichudService.ReadAll().Result.Find(e=> e.EichudCode == id);
-                if (v == null)
-                    throw new NullReferenceException("mmm");
-                eichudService.Delete(v);
+                await eichudService.DeleteAsync(id, ct);
                 return true;
             }
-            catch(Exception e) { return false; }
+            catch { return false; }
         }
-
     }
 }

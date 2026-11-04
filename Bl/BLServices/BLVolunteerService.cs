@@ -1,100 +1,94 @@
 ﻿using Bl.BLApi;
 using Bl.BLModels;
+using Bl.Exceptions;
 using Bl.Mapping;
 using Dal.Api;
 using Dal.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Bl.BLServices
 {
     public class BLVolunteerService : BlVolunteerInterface
     {
-        DalVolunteerInterface Volunteer;
-        BlPositionInterface BlPosition;
+        private const string EntityName = nameof(Volunteer);
 
-        public BLVolunteerService(DalVolunteerInterface volunteer, BlPositionInterface blPosition)
+        private readonly DalVolunteerInterface dal;
+        private readonly BlPositionInterface positionService;
+
+        public BLVolunteerService(DalVolunteerInterface dal, BlPositionInterface positionService)
         {
-            this.Volunteer = volunteer;
-            this.BlPosition = blPosition;
+            this.dal = dal;
+            this.positionService = positionService;
         }
-        private Volunteer Convert(BLVolunteerModel v)
+
+        public async Task<List<BLVolunteerModel>> GetAllAsync(CancellationToken ct)
         {
-            return new Volunteer() { VolunteerCode = v.VolunteerCode, PositionCode = v.PositionCode,
-            VolunteerDomains = v.VolunteerDomains.Select(VolunteerDomainMapper.ToEntity).ToList()
+            List<Volunteer> volunteers = await dal.GetAllAsync(ct);
+            List<BLVolunteerModel> models = new List<BLVolunteerModel>();
+            // Sequential on purpose: the scoped DbContext does not support parallel queries.
+            foreach (Volunteer volunteer in volunteers)
+            {
+                models.Add(await ToModelAsync(volunteer, ct));
+            }
+            return models;
+        }
+
+        public async Task<BLVolunteerModel?> GetByIdAsync(int id, CancellationToken ct)
+        {
+            Volunteer? volunteer = await dal.GetByIdAsync(id, ct);
+            return volunteer == null ? null : await ToModelAsync(volunteer, ct);
+        }
+
+        public async Task<BLVolunteerModel> CreateAsync(BLVolunteerModel item, CancellationToken ct)
+        {
+            Volunteer created = await dal.CreateAsync(ToEntity(item), ct);
+            // Re-read so the returned model includes the Eichud data, which the request does not carry.
+            return await GetByIdAsync(created.VolunteerCode, ct)
+                ?? throw new NotFoundException(EntityName, created.VolunteerCode);
+        }
+
+        public async Task UpdateAsync(BLVolunteerModel item, CancellationToken ct)
+        {
+            if (!await dal.UpdateAsync(ToEntity(item), ct))
+                throw new NotFoundException(EntityName, item.VolunteerCode);
+        }
+
+        public async Task DeleteAsync(int id, CancellationToken ct)
+        {
+            if (!await dal.DeleteAsync(id, ct))
+                throw new NotFoundException(EntityName, id);
+        }
+
+        public async Task UpdateVolunteerDomainsAsync(BLVolunteerModel volunteer, CancellationToken ct)
+        {
+            await dal.UpdateVolunteerDomainsAsync(ToEntity(volunteer), ct);
+        }
+
+        private static Volunteer ToEntity(BLVolunteerModel volunteer)
+        {
+            return new Volunteer()
+            {
+                VolunteerCode = volunteer.VolunteerCode,
+                PositionCode = volunteer.PositionCode,
+                VolunteerDomains = volunteer.VolunteerDomains.Select(VolunteerDomainMapper.ToEntity).ToList()
             };
         }
-        private BLVolunteerModel Convert(Volunteer v)
+
+        private async Task<BLVolunteerModel> ToModelAsync(Volunteer volunteer, CancellationToken ct)
         {
-             BLVolunteerModel blv =  new BLVolunteerModel() { VolunteerCode = v.VolunteerCode, PositionCode = v.PositionCode ,VolunteerCodeNavigation=EichudMapper.ToModel( v.VolunteerCodeNavigation),
-                VolunteerDomains = v.VolunteerDomains.Select(VolunteerDomainMapper.ToModel).ToList()
+            BLVolunteerModel model = new BLVolunteerModel()
+            {
+                VolunteerCode = volunteer.VolunteerCode,
+                PositionCode = volunteer.PositionCode,
+                VolunteerCodeNavigation = EichudMapper.ToModel(volunteer.VolunteerCodeNavigation),
+                VolunteerDomains = volunteer.VolunteerDomains.Select(VolunteerDomainMapper.ToModel).ToList()
             };
-            if (blv.PositionCode != null)
+            if (volunteer.PositionCode is int positionCode)
             {
-                blv.PositionName = BlPosition.Read(v.PositionCode ?? 0).Result.positionName;
+                BlPositionModel position = await positionService.GetByIdAsync(positionCode, ct)
+                    ?? throw new NotFoundException(nameof(Position), positionCode);
+                model.PositionName = position.positionName;
             }
-            return blv;
-        }
-        private List<BLVolunteerModel> Convert(List<Volunteer> c)
-        {
-            List<BLVolunteerModel> list = new List<BLVolunteerModel>();
-            foreach (var item in c)
-            {
-                list.Add(Convert(item));
-            }
-            return list;
-        }
-
-        public void Create(BLVolunteerModel item)
-
-        {
- 
-            Volunteer.Create(Convert(item));
-            
-        }
-
-        public void Delete(BLVolunteerModel item)
-        {
-            Volunteer.Delete(Convert(item));
-        }
-
-        public async Task<BLVolunteerModel> Read(int id)
-        {
-            
-            try { return Convert(Volunteer.Read(id).Result ); }
-            catch (ObjectNotFoundException e) 
-            {
-                return null;
-            }
-        }
-
-        public async Task<List<BLVolunteerModel>> Read(Func<BLVolunteerModel, bool> func)
-        {
-            List<BLVolunteerModel> list = Convert(Volunteer.Read((Func<Volunteer, bool>)func).Result);
-            return list;
-        }
-
-        public async Task<List<BLVolunteerModel>> ReadAll()
-        {
-            List<BLVolunteerModel> list = new List<BLVolunteerModel>();
-
-            Volunteer.ReadAll().Result.ForEach(item => { list.Add(Convert(item)); });
-
-            return list;
-        }
-
-        public void Update(BLVolunteerModel item)
-        {   
-            var tt = Convert(item);
-
-            Volunteer.Update(tt);
-        }
-        public async Task UpdateVolunteerDomains(BLVolunteerModel dto)
-        {
-            await Volunteer.UpdateVolunteerDomains(Convert(dto));
+            return model;
         }
     }
 }

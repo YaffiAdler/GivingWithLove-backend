@@ -1,121 +1,95 @@
 ﻿using Dal.Api;
 using Dal.Models;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Dal.Services
 {
     public class DalVolunteerService : DalVolunteerInterface
     {
+        private readonly DbManager db;
 
-        private DbManager db;
-
-        public DalVolunteerService(DbManager dbm)
+        public DalVolunteerService(DbManager db)
         {
-            db = dbm;
+            this.db = db;
         }
 
-        public void Create(Volunteer item)
+        public async Task<List<Volunteer>> GetAllAsync(CancellationToken ct)
+        {
+            return await VolunteersWithDetails().ToListAsync(ct);
+        }
+
+        public async Task<Volunteer?> GetByIdAsync(int id, CancellationToken ct)
+        {
+            return await VolunteersWithDetails().FirstOrDefaultAsync(volunteer => volunteer.VolunteerCode == id, ct);
+        }
+
+        public async Task<Volunteer> CreateAsync(Volunteer item, CancellationToken ct)
         {
             db.Volunteers.Add(item);
-            db.SaveChanges();
-            
+            await db.SaveChangesAsync(ct);
+            return item;
         }
 
-        
-
-        public void Delete(Volunteer item)
+        // Only PositionCode is updatable: the key is the Eichud code and the personal data lives in Eichud.
+        public async Task<bool> UpdateAsync(Volunteer item, CancellationToken ct)
         {
-            if (item == null)
-                throw new ArgumentNullException("item");
-            // שאילתא ששולפת את הפריט ואז לעשות רימוב
+            Volunteer? existing = await db.Volunteers.FirstOrDefaultAsync(volunteer => volunteer.VolunteerCode == item.VolunteerCode, ct);
+            if (existing == null)
+                return false;
 
-            db.Volunteers.Remove
-                (db.Volunteers.Where(x => x.VolunteerCode == item.VolunteerCode).FirstOrDefault()
-                            ?? throw new Exception("לא נמצא הפריט למחיקה"));
-            db.SaveChanges();
-            //throw new NotImplementedException();
+            existing.PositionCode = item.PositionCode;
+            await db.SaveChangesAsync(ct);
+            return true;
         }
 
-       
-        public async Task<List<Volunteer>> Read(Func<Volunteer, bool> func)
+        public async Task<bool> DeleteAsync(int id, CancellationToken ct)
         {
-            List<Volunteer> list = new();
-            foreach (Volunteer item in db.Volunteers)
-                if (func(item))
-                    list.Add(item);
-            return list;
-        }
-        public async Task<Volunteer> Read(int id)
-        {
-            Volunteer v = ReadAll().Result.Find(v => v.VolunteerCode == id)??throw new ObjectNotFoundException();
-            return v;
+            Volunteer? existing = await db.Volunteers.FirstOrDefaultAsync(volunteer => volunteer.VolunteerCode == id, ct);
+            if (existing == null)
+                return false;
+
+            db.Volunteers.Remove(existing);
+            await db.SaveChangesAsync(ct);
+            return true;
         }
 
-
-        public async Task<List<Volunteer>> ReadAll() => db.Volunteers.Include(x=> x.VolunteerCodeNavigation).Include(y=> y.VolunteerDomains).ToList();
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        public void Update(Volunteer item)
+        public async Task UpdateVolunteerDomainsAsync(Volunteer volunteer, CancellationToken ct)
         {
-            try
-            {
-                var volunteer = db.Volunteers
-                    .FirstOrDefault(v => v.VolunteerCode == item.VolunteerCode);
-
-                if (volunteer != null)
-                {
-                    volunteer.PositionCode = item.PositionCode;
-                    
-                    //volunteer.VolunteerDomains = item.VolunteerDomains;
-                    //volunteer. = item.Address;
-
-                    // לעדכן את כל השדות הדרושים
-
-                    db.SaveChanges();
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-        }
-
-        public async Task UpdateVolunteerDomains(Volunteer dto)
-        {
-            var newSet = dto.VolunteerDomains
-        .Select(x => x.ProjectCode)
-        .ToHashSet();
-
-            var existing = await db.VolunteerDomains
-                .Where(x => x.VolunteerCode == dto.VolunteerCode)
-                .ToListAsync();
-
-            var existingSet = existing
-                .Select(x => x.ProjectCode)
+            HashSet<int> requestedProjectCodes = volunteer.VolunteerDomains
+                .Select(domain => domain.ProjectCode)
                 .ToHashSet();
 
-            var toAdd = newSet.Except(existingSet);
-            var toRemove = existing.Where(x => !newSet.Contains(x.ProjectCode));
+            List<VolunteerDomain> existingDomains = await db.VolunteerDomains
+                .Where(domain => domain.VolunteerCode == volunteer.VolunteerCode)
+                .ToListAsync(ct);
 
-            foreach (var projectCode in toAdd)
+            HashSet<int> existingProjectCodes = existingDomains
+                .Select(domain => domain.ProjectCode)
+                .ToHashSet();
+
+            IEnumerable<int> projectCodesToAdd = requestedProjectCodes.Except(existingProjectCodes);
+            IEnumerable<VolunteerDomain> domainsToRemove = existingDomains.Where(domain => !requestedProjectCodes.Contains(domain.ProjectCode));
+
+            foreach (int projectCode in projectCodesToAdd)
             {
                 db.VolunteerDomains.Add(new VolunteerDomain
                 {
-                    VolunteerCode = dto.VolunteerCode,
+                    VolunteerCode = volunteer.VolunteerCode,
                     ProjectCode = projectCode
                 });
             }
 
-            db.VolunteerDomains.RemoveRange(toRemove);
+            db.VolunteerDomains.RemoveRange(domainsToRemove);
 
-            await db.SaveChangesAsync();
+            await db.SaveChangesAsync(ct);
+        }
+
+        private IQueryable<Volunteer> VolunteersWithDetails()
+        {
+            return db.Volunteers
+                .AsNoTracking()
+                .Include(volunteer => volunteer.VolunteerCodeNavigation)
+                .Include(volunteer => volunteer.VolunteerDomains);
         }
     }
 }

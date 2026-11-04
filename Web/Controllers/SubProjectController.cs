@@ -2,66 +2,58 @@
 using Bl.BLModels;
 using Microsoft.AspNetCore.Mvc;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
 namespace Web.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class SubProjectController : ControllerBase
     {
-
         private readonly BlSubProjectInterface subProjectService;
         public SubProjectController(BlSubProjectInterface subProjectService)
         {
             this.subProjectService = subProjectService;
         }
-        // GET: api/<SubProjectController>
+
         [HttpGet]
-        public Task<List<BlSubProjectModel>> Get()
+        public async Task<List<BlSubProjectModel>> Get(CancellationToken ct)
         {
-            return subProjectService.ReadAll();
+            return await subProjectService.GetAllAsync(ct);
         }
 
-        // GET api/<SubProjectController>/5
         [HttpGet("{id}")]
-        public Task<BlSubProjectModel> Get(int id)
+        public async Task<BlSubProjectModel?> Get(int id, CancellationToken ct)
         {
-            return subProjectService.Read(id);
-
+            return await subProjectService.GetByIdAsync(id, ct);
         }
 
-        // POST api/<SubProjectController>
         [HttpPost]
-        public bool Post(BlSubProjectModel s)
+        public async Task<bool> Post(BlSubProjectModel subProject, CancellationToken ct)
         {
             try
             {
-                subProjectService.Create(s);
+                await subProjectService.CreateAsync(subProject, ct);
                 return true;
             }
             catch { return false; }
         }
 
-        // PUT api/<SubProjectController>/5
         [HttpPut("{id}")]
-        public bool Put(int id, BlSubProjectModel s)
+        public async Task<bool> Put(int id, BlSubProjectModel subProject, CancellationToken ct)
         {
             try
             {
-                subProjectService.Update(s);
+                await subProjectService.UpdateAsync(subProject, ct);
                 return true;
             }
             catch { return false; }
         }
 
-        // DELETE api/<SubProjectController>/5
         [HttpDelete("{id}")]
-        public bool Delete(BlSubProjectModel s)
+        public async Task<bool> Delete(int id, CancellationToken ct)
         {
             try
             {
-                subProjectService.Delete(s);
+                await subProjectService.DeleteAsync(id, ct);
                 return true;
             }
             catch { return false; }

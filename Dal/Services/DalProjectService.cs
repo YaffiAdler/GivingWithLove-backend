@@ -1,117 +1,55 @@
-﻿using Dal.Api;
+using Dal.Api;
 using Dal.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace Dal.Services
 {
     public class DalProjectService : DalProjectInterface
     {
-        private DbManager db;
+        private readonly DbManager db;
 
-        public DalProjectService(DbManager dbm)
+        public DalProjectService(DbManager db)
         {
-            db = dbm;
+            this.db = db;
         }
-        public void Create(Project item)
+
+        public async Task<List<Project>> GetAllAsync(CancellationToken ct)
+        {
+            return await db.Projects.AsNoTracking().ToListAsync(ct);
+        }
+
+        public async Task<Project?> GetByIdAsync(int id, CancellationToken ct)
+        {
+            return await db.Projects.AsNoTracking().FirstOrDefaultAsync(project => project.ProjectCode == id, ct);
+        }
+
+        public async Task<Project> CreateAsync(Project item, CancellationToken ct)
         {
             db.Projects.Add(item);
-            db.SaveChanges();
+            await db.SaveChangesAsync(ct);
+            return item;
         }
 
-        public void Delete(Project item)
+        public async Task<bool> UpdateAsync(Project item, CancellationToken ct)
         {
-            if (item == null)
-                throw new ArgumentNullException("item");
-            // שאילתא ששולפת את הפריט ואז לעשות רימוב
+            Project? existing = await db.Projects.FirstOrDefaultAsync(project => project.ProjectCode == item.ProjectCode, ct);
+            if (existing == null)
+                return false;
 
-            db.Projects.Remove
-                (db.Projects.Where(x => x.ProjectCode == item.ProjectCode).FirstOrDefault()
-                            ?? throw new Exception("לא נמצא הפריט למחיקה"));
-            db.SaveChanges();
+            db.Entry(existing).CurrentValues.SetValues(item);
+            await db.SaveChangesAsync(ct);
+            return true;
         }
 
-        public async Task<Project> Read(int id)
+        public async Task<bool> DeleteAsync(int id, CancellationToken ct)
         {
-            Project p = db.Projects.ToList().Find(v => v.ProjectCode == id) ?? throw new ObjectNotFoundException();
-            return p;
+            Project? existing = await db.Projects.FirstOrDefaultAsync(project => project.ProjectCode == id, ct);
+            if (existing == null)
+                return false;
+
+            db.Projects.Remove(existing);
+            await db.SaveChangesAsync(ct);
+            return true;
         }
-
-        public async Task<List<Project>> Read(Func<Project, bool> func)
-        {
-            List<Project> list = new List<Project>();
-            foreach (Project item in db.Projects)
-                if (func(item))
-                    list.Add(item);
-            return list;
-           
-        }
-
-        public async Task<List<Project>> ReadAll() => db.Projects.ToList();
-       
-        public void Update(Project item)
-        {
-            try
-            {
-                var i = ReadAll().Result.FindIndex(v => v.ProjectCode == item.ProjectCode);
-                if (i >= 0)
-                {
-                    db.Projects.ToList<Project>()[i] = item;
-                    db.SaveChanges();
-                }
-
-            }
-            catch { Console.WriteLine("Project not found"); }
-        }
-
-
-        //public void Create(Project item)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-
-
-        //public void Delete(Project item)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //public Task<Project> Read(int id)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-
-
-        //public Task<List<Project>> Read(Func<Project, bool> func)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //public Task<List<Project>> ReadAll()
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-
-        //public void Update(Project item)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //Task<Project> ICrud<Project>.Read(int id)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //Task<List<Project>> ICrud<Project>.ReadAll()
-        //{
-        //    throw new NotImplementedException();
-        //}
-
     }
 }

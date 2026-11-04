@@ -4,8 +4,6 @@ using Bl.BLModels;
 using Dal.Api;
 using Microsoft.AspNetCore.Mvc;
 
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-
 namespace Web.Controllers
 {
     [Route("api/[controller]")]
@@ -17,51 +15,35 @@ namespace Web.Controllers
         {
             this.volunteeringService = volunteeringService;
         }
-        // GET: api/<VolunteeringController>
+
         [HttpGet]
-        public Task<List<BlVolunteeringModel >> Get()
+        public async Task<List<BlVolunteeringModel>> Get(CancellationToken ct)
         {
-          
-                var volunteers = volunteeringService.ReadAll();
-                if (volunteers == null )
-                {
-                    return ObjectNotFoundException();
-                }
-                return volunteers;
-            }
+            return await volunteeringService.GetAllAsync(ct);
+        }
 
-        private async Task<List<BlVolunteeringModel>> ObjectNotFoundException()
-        {
-            throw new NotImplementedException();
-        }       
-
-        // GET api/<VolunteeringController>/5
         [HttpGet("{id}")]
-        public Task<BlVolunteeringModel> Get(int id)
+        public async Task<BlVolunteeringModel?> Get(int id, CancellationToken ct)
         {
-            return volunteeringService.Read(id);
+            return await volunteeringService.GetByIdAsync(id, ct);
         }
 
-        // POST api/<VolunteeringController>
         [HttpPost]
-        public void Post([FromBody] BlVolunteeringModel v)
+        public async Task Post([FromBody] BlVolunteeringModel volunteering, CancellationToken ct)
         {
-            volunteeringService.Create(v);
+            await volunteeringService.CreateAsync(volunteering, ct);
         }
 
-        // PUT api/<VolunteeringController>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] BlVolunteeringModel v)
+        public async Task Put(int id, [FromBody] BlVolunteeringModel volunteering, CancellationToken ct)
         {
-            volunteeringService.Update(v);
-
+            await volunteeringService.UpdateAsync(volunteering, ct);
         }
 
-        // DELETE api/<VolunteeringController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task Delete(int id, CancellationToken ct)
         {
-            volunteeringService.Delete(Get(id).Result);
+            await volunteeringService.DeleteAsync(id, ct);
         }
     }
 }

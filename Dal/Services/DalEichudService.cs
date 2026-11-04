@@ -1,102 +1,55 @@
-﻿using Dal.Api;
+using Dal.Api;
 using Dal.Models;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Dal.Services
 {
-    public class DalEichudService:DalEichudInterface
+    public class DalEichudService : DalEichudInterface
     {
-        private DbManager dbm;
-        
-        public DalEichudService(DbManager dbm)
+        private readonly DbManager db;
+
+        public DalEichudService(DbManager db)
         {
-            this.dbm = dbm;
+            this.db = db;
         }
 
-        public void Create(Eichud item)
+        public async Task<List<Eichud>> GetAllAsync(CancellationToken ct)
         {
-            dbm.Eichuds.Add(item);
-            dbm.SaveChanges();
+            return await db.Eichuds.AsNoTracking().ToListAsync(ct);
         }
 
-        public void Delete(int id)
+        public async Task<Eichud?> GetByIdAsync(int id, CancellationToken ct)
         {
-            try
-            {
-                var item = ReadAll().Result.Find(b => b.EichudCode == id);
-                if (item != null)
-                {
-
-                    dbm.Eichuds.Remove(item);
-                    dbm.SaveChanges();
-                }
-            }
-            catch {Console.WriteLine("the EicudCode do not found");
-                throw new ArgumentNullException("the EicudCode do not found");}
+            return await db.Eichuds.AsNoTracking().FirstOrDefaultAsync(eichud => eichud.EichudCode == id, ct);
         }
 
-        public void Delete(Eichud item)
+        public async Task<Eichud> CreateAsync(Eichud item, CancellationToken ct)
         {
-            Delete(item.EichudCode);
-         
+            db.Eichuds.Add(item);
+            await db.SaveChangesAsync(ct);
+            return item;
         }
 
-        public async Task<List<Eichud>> Read(Func<Eichud, bool> func)
+        public async Task<bool> UpdateAsync(Eichud item, CancellationToken ct)
         {
-            List<Eichud> list = new List<Eichud>();
+            Eichud? existing = await db.Eichuds.FirstOrDefaultAsync(eichud => eichud.EichudCode == item.EichudCode, ct);
+            if (existing == null)
+                return false;
 
-            foreach (Eichud item in dbm.Eichuds)
-                if (func(item)) 
-                    list.Add(item);
-
-            return list;
+            db.Entry(existing).CurrentValues.SetValues(item);
+            await db.SaveChangesAsync(ct);
+            return true;
         }
 
-        public async Task<Eichud> Read(int id)
+        public async Task<bool> DeleteAsync(int id, CancellationToken ct)
         {
-            Eichud e = dbm.Eichuds.ToList().Find(x => x.EichudCode == id) ?? throw new ObjectNotFoundException  ();
-            return e;
+            Eichud? existing = await db.Eichuds.FirstOrDefaultAsync(eichud => eichud.EichudCode == id, ct);
+            if (existing == null)
+                return false;
 
-        }
-
-
-        //public object Read(Bl.BLModels.BlEichudModel item)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //public object Read(Bl.BLModels.BlEichudModel item)
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        public async Task<List<Eichud>> ReadAll()
-        {
-            return dbm.Eichuds.ToList();
-        }
-
-
-        public void Update(Eichud item)
-        {
-            try
-            {
-                var i = ReadAll().Result.FindIndex(b => b.EichudCode == item.EichudCode);
-                if (i >= 0)
-                {
-                    dbm.Eichuds.ToList<Eichud>()[i] = item;
-                    dbm.SaveChanges();
-                }
-
-            }
-            catch {
-                Console.WriteLine("EicudCode not found");
-                throw new Exception("EicudCode not found");
-            }
+            db.Eichuds.Remove(existing);
+            await db.SaveChangesAsync(ct);
+            return true;
         }
     }
 }

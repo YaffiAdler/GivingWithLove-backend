@@ -1,78 +1,55 @@
-﻿using Dal.Api;
+using Dal.Api;
 using Dal.Models;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Dal.Services
 {
     public class DalPositionService : DalPositionInterface
     {
-        DbManager mydb;
-        public DalPositionService(DbManager mydb)
+        private readonly DbManager db;
+
+        public DalPositionService(DbManager db)
         {
-            this.mydb = mydb;
-        }
-        public void Create(Position item)
-        {
-            if (item == null)
-                throw new ArgumentNullException("Position is null");
-            else
-                try
-                {
-                    mydb.Positions.Add(item);
-                    mydb.SaveChanges();
-                }
-                catch
-                {
-                    throw new Exception();
-                }
+            this.db = db;
         }
 
-        public void Delete(Position item)
+        public async Task<List<Position>> GetAllAsync(CancellationToken ct)
         {
-            if (item == null)
-                throw new ArgumentNullException("item");
-            mydb.Positions.Remove(item);
-            mydb.SaveChanges();
+            return await db.Positions.AsNoTracking().ToListAsync(ct);
         }
 
-        public async Task<Position> Read(int id)
+        public async Task<Position?> GetByIdAsync(int id, CancellationToken ct)
         {
-            Position p = mydb.Positions.ToList().Find(x=> x.positionCode == id)??throw new ObjectNotFoundException();
-            return p;
+            return await db.Positions.AsNoTracking().FirstOrDefaultAsync(position => position.positionCode == id, ct);
         }
 
-        public async Task<List<Position>> Read(Func<Position, bool> func)
+        public async Task<Position> CreateAsync(Position item, CancellationToken ct)
         {
-            List<Position> list = new();
-            foreach (Position item in mydb.Positions)
-                if (func(item))
-                    list.Add(item);
-            return list;
+            db.Positions.Add(item);
+            await db.SaveChangesAsync(ct);
+            return item;
         }
 
-        public async Task<List<Position>> ReadAll()
+        public async Task<bool> UpdateAsync(Position item, CancellationToken ct)
         {
-            return await mydb.Positions.ToListAsync();
+            Position? existing = await db.Positions.FirstOrDefaultAsync(position => position.positionCode == item.positionCode, ct);
+            if (existing == null)
+                return false;
+
+            db.Entry(existing).CurrentValues.SetValues(item);
+            await db.SaveChangesAsync(ct);
+            return true;
         }
 
-        public void Update(Position item)
+        public async Task<bool> DeleteAsync(int id, CancellationToken ct)
         {
-            try
-            {
-                var i = ReadAll().Result.FindIndex(v => v.positionCode == item.positionCode);
-                if (i >= 0)
-                {
-                    mydb.Positions.ToList<Position>()[i] = item;
-                    mydb.SaveChanges();
-                }
+            Position? existing = await db.Positions.FirstOrDefaultAsync(position => position.positionCode == id, ct);
+            if (existing == null)
+                return false;
 
-            }
-            catch { Console.WriteLine("Position not found"); }
+            db.Positions.Remove(existing);
+            await db.SaveChangesAsync(ct);
+            return true;
         }
     }
 }

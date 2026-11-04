@@ -10,6 +10,6 @@ namespace Bl.BLApi
 {
     public interface BlVolunteerInterface:BlICrud<BLVolunteerModel>
     {
-        Task UpdateVolunteerDomains(BLVolunteerModel dto);
+        Task UpdateVolunteerDomainsAsync(BLVolunteerModel volunteer, CancellationToken ct);
     }
 }

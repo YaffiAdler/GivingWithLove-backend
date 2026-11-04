@@ -1,76 +1,55 @@
-﻿using Dal.Api;
+using Dal.Api;
 using Dal.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace Dal.Services
 {
     public class DalSubProjectService : DalSubProjectInterface
     {
-        private DbManager db;
+        private readonly DbManager db;
 
-        public DalSubProjectService(DbManager dbm)
+        public DalSubProjectService(DbManager db)
         {
-            db = dbm;
+            this.db = db;
         }
-        public void Create(SubProject item)
+
+        public async Task<List<SubProject>> GetAllAsync(CancellationToken ct)
+        {
+            return await db.SubProjects.AsNoTracking().ToListAsync(ct);
+        }
+
+        public async Task<SubProject?> GetByIdAsync(int id, CancellationToken ct)
+        {
+            return await db.SubProjects.AsNoTracking().FirstOrDefaultAsync(subProject => subProject.SubProjectCode == id, ct);
+        }
+
+        public async Task<SubProject> CreateAsync(SubProject item, CancellationToken ct)
         {
             db.SubProjects.Add(item);
-           db.SaveChanges();
+            await db.SaveChangesAsync(ct);
+            return item;
         }
 
-        public void Delete(SubProject item)
+        public async Task<bool> UpdateAsync(SubProject item, CancellationToken ct)
         {
-            if (item == null)
-                throw new ArgumentNullException("item");
-            // שאילתא ששולפת את הפריט ואז לעשות רימוב
+            SubProject? existing = await db.SubProjects.FirstOrDefaultAsync(subProject => subProject.SubProjectCode == item.SubProjectCode, ct);
+            if (existing == null)
+                return false;
 
-            db.SubProjects.Remove
-                (db.SubProjects.Where(x => x.SubProjectCode == item.SubProjectCode).FirstOrDefault()
-                            ?? throw new Exception("לא נמצא הפריט למחיקה"));
-            db.SaveChanges();
+            db.Entry(existing).CurrentValues.SetValues(item);
+            await db.SaveChangesAsync(ct);
+            return true;
         }
 
-        public async Task<SubProject> Read(int id)
+        public async Task<bool> DeleteAsync(int id, CancellationToken ct)
         {
+            SubProject? existing = await db.SubProjects.FirstOrDefaultAsync(subProject => subProject.SubProjectCode == id, ct);
+            if (existing == null)
+                return false;
 
-            SubProject sp = db.SubProjects.ToList().Find(v => v.SubProjectCode == id) ?? throw new ObjectNotFoundException();
-            return sp;
-
+            db.SubProjects.Remove(existing);
+            await db.SaveChangesAsync(ct);
+            return true;
         }
-
-     
-
-        public async Task<List<SubProject>> Read(Func<SubProject, bool> func)
-        {
-           
-            List<SubProject> list = new List<SubProject>();
-            foreach (SubProject item in db.SubProjects)
-                if (func(item))
-                    list.Add(item);
-            return list;           
-        }
-
-        public async Task<List<SubProject>> ReadAll() => db.SubProjects.ToList();
-
-        public void Update(SubProject item)
-        {
-            try
-            {
-                var i = ReadAll().Result.FindIndex(v => v.SubProjectCode == item.SubProjectCode);
-                if (i >= 0)
-                {
-                    db.SubProjects.ToList<SubProject>()[i] = item;
-                    db.SaveChanges();
-                }
-
-            }
-            catch { Console.WriteLine("SubProject not found"); }
-
-        }
-        
     }
 }
