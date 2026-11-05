@@ -1,25 +1,28 @@
+using Bl.Dtos.VolunteerDomain;
 using Dal.Models;
 
 namespace Bl.Mapping
 {
-    public static class VolunteerDomainMapper
+    internal static class VolunteerDomainMapper
     {
-        public static BlVolunteerDomainModel ToModel(VolunteerDomain volunteerDomain)
+        public static VolunteerDomainDto ToDto(VolunteerDomain volunteerDomain)
         {
-            return new BlVolunteerDomainModel()
+            return new VolunteerDomainDto(
+                volunteerDomain.VolunteerDomainsCode,
+                volunteerDomain.VolunteerCode,
+                volunteerDomain.ProjectCode);
+        }
+
+        public static VolunteerDomain ToEntity(CreateVolunteerDomainDto volunteerDomain)
+        {
+            return new VolunteerDomain()
             {
-                VolunteerDomainsCode = volunteerDomain.VolunteerDomainsCode,
                 VolunteerCode = volunteerDomain.VolunteerCode,
                 ProjectCode = volunteerDomain.ProjectCode
             };
         }
 
-        public static List<BlVolunteerDomainModel> ToModels(List<VolunteerDomain> volunteerDomains)
-        {
-            return volunteerDomains.Select(ToModel).ToList();
-        }
-
-        public static VolunteerDomain ToEntity(BlVolunteerDomainModel volunteerDomain)
+        public static VolunteerDomain ToEntity(UpdateVolunteerDomainDto volunteerDomain)
         {
             return new VolunteerDomain()
             {

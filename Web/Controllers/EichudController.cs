@@ -1,5 +1,6 @@
-﻿using Bl.BLApi;
-using Bl.BLModels;
+﻿using Bl.Abstractions;
+using Bl.Dtos.Common;
+using Bl.Dtos.Eichud;
 using Microsoft.AspNetCore.Mvc;
 using Web.Errors;
 
@@ -9,35 +10,46 @@ namespace Web.Controllers
     [ApiController]
     public class EichudController : ControllerBase
     {
-        private readonly BlEichudInterface eichudService;
+        private readonly IEichudService eichudService;
 
-        public EichudController(BlEichudInterface eichudService)
+        public EichudController(IEichudService eichudService)
         {
             this.eichudService = eichudService;
         }
 
+        // Paged. search: a number matches the code exactly, any other text is searched in the first and family names.
+        // sort: name (default: family name, then first name) | code.
         [HttpGet]
-        public async Task<ActionResult<List<BlEichudModel>>> GetAll(CancellationToken ct)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<PagedResult<EichudDto>>> GetPage([FromQuery] PageQueryDto query, CancellationToken ct)
         {
-            return await eichudService.GetAllAsync(ct);
+            return await eichudService.GetPageAsync(query, ct);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<BlEichudModel>> GetById(int id, CancellationToken ct)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<EichudDto>> GetById(int id, CancellationToken ct)
         {
-            BlEichudModel? eichud = await eichudService.GetByIdAsync(id, ct);
+            EichudDto? eichud = await eichudService.GetByIdAsync(id, ct);
             return eichud == null ? NotFound() : eichud;
         }
 
         [HttpPost]
-        public async Task<ActionResult<BlEichudModel>> Create([FromBody] BlEichudModel eichud, CancellationToken ct)
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<EichudDto>> Create([FromBody] CreateEichudDto eichud, CancellationToken ct)
         {
-            BlEichudModel created = await eichudService.CreateAsync(eichud, ct);
+            EichudDto created = await eichudService.CreateAsync(eichud, ct);
             return CreatedAtAction(nameof(GetById), new { id = created.EichudCode }, created);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] BlEichudModel eichud, CancellationToken ct)
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateEichudDto eichud, CancellationToken ct)
         {
             if (eichud.EichudCode != id)
                 return this.IdMismatchProblem(id, eichud.EichudCode);
@@ -47,6 +59,8 @@ namespace Web.Controllers
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
             await eichudService.DeleteAsync(id, ct);

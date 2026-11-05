@@ -1,5 +1,5 @@
-﻿using Bl.BLApi;
-using Bl.BLModels;
+﻿using Bl.Abstractions;
+using Bl.Dtos.Position;
 using Microsoft.AspNetCore.Mvc;
 using Web.Errors;
 
@@ -9,44 +9,54 @@ namespace Web.Controllers
     [ApiController]
     public class PositionController : ControllerBase
     {
-        private readonly BlPositionInterface positionService;
+        private readonly IPositionService positionService;
 
-        public PositionController(BlPositionInterface positionService)
+        public PositionController(IPositionService positionService)
         {
             this.positionService = positionService;
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<BlPositionModel>>> GetAll(CancellationToken ct)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult<List<PositionDto>>> GetAll(CancellationToken ct)
         {
             return await positionService.GetAllAsync(ct);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<BlPositionModel>> GetById(int id, CancellationToken ct)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<PositionDto>> GetById(int id, CancellationToken ct)
         {
-            BlPositionModel? position = await positionService.GetByIdAsync(id, ct);
+            PositionDto? position = await positionService.GetByIdAsync(id, ct);
             return position == null ? NotFound() : position;
         }
 
         [HttpPost]
-        public async Task<ActionResult<BlPositionModel>> Create([FromBody] BlPositionModel position, CancellationToken ct)
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<PositionDto>> Create([FromBody] CreatePositionDto position, CancellationToken ct)
         {
-            BlPositionModel created = await positionService.CreateAsync(position, ct);
-            return CreatedAtAction(nameof(GetById), new { id = created.positionCode }, created);
+            PositionDto created = await positionService.CreateAsync(position, ct);
+            return CreatedAtAction(nameof(GetById), new { id = created.PositionCode }, created);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] BlPositionModel position, CancellationToken ct)
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdatePositionDto position, CancellationToken ct)
         {
-            if (position.positionCode != id)
-                return this.IdMismatchProblem(id, position.positionCode);
+            if (position.PositionCode != id)
+                return this.IdMismatchProblem(id, position.PositionCode);
 
             await positionService.UpdateAsync(position, ct);
             return NoContent();
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
             await positionService.DeleteAsync(id, ct);

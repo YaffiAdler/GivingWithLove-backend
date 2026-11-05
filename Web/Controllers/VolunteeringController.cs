@@ -1,6 +1,6 @@
-﻿using Bl.Dtos.Volunteering;
-// BlVolunteeringInterface lives in namespace Dal.Api until BE-04 fixes it.
-using Dal.Api;
+using Bl.Abstractions;
+using Bl.Dtos.Common;
+using Bl.Dtos.Volunteering;
 using Microsoft.AspNetCore.Mvc;
 using Web.Errors;
 
@@ -10,16 +10,22 @@ namespace Web.Controllers
     [ApiController]
     public class VolunteeringController : ControllerBase
     {
-        private readonly BlVolunteeringInterface volunteeringService;
+        private readonly IVolunteeringService volunteeringService;
 
-        public VolunteeringController(BlVolunteeringInterface volunteeringService)
+        public VolunteeringController(IVolunteeringService volunteeringService)
         {
             this.volunteeringService = volunteeringService;
         }
 
-        // All filters are optional query parameters: volunteerCode, projectCode, from, to (yyyy-MM-dd, inclusive).
+        // Paged. Optional filters: volunteerCode, projectCode, from, to (yyyy-MM-dd, inclusive).
+        // sort: date (default, newest first) | volunteer | project.
         [HttpGet]
-        public async Task<ActionResult<List<VolunteeringDto>>> GetAll([FromQuery] VolunteeringFilterDto filter, CancellationToken ct)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<PagedResult<VolunteeringDto>>> GetPage(
+            [FromQuery] VolunteeringPageQueryDto query,
+            [FromQuery] VolunteeringFilterDto filter,
+            CancellationToken ct)
         {
             if (filter.From > filter.To)
             {
@@ -29,10 +35,12 @@ namespace Web.Controllers
                     detail: $"'from' ({filter.From:yyyy-MM-dd}) is later than 'to' ({filter.To:yyyy-MM-dd}).");
             }
 
-            return await volunteeringService.GetAllAsync(filter, ct);
+            return await volunteeringService.GetPageAsync(query, filter, ct);
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<VolunteeringDto>> GetById(int id, CancellationToken ct)
         {
             VolunteeringDto? volunteering = await volunteeringService.GetByIdAsync(id, ct);
@@ -40,6 +48,8 @@ namespace Web.Controllers
         }
 
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<VolunteeringDto>> Create([FromBody] CreateVolunteeringDto volunteering, CancellationToken ct)
         {
             VolunteeringDto created = await volunteeringService.CreateAsync(volunteering, ct);
@@ -47,6 +57,9 @@ namespace Web.Controllers
         }
 
         [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateVolunteeringDto volunteering, CancellationToken ct)
         {
             if (volunteering.VolunteeringCode != id)
@@ -57,6 +70,8 @@ namespace Web.Controllers
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
             await volunteeringService.DeleteAsync(id, ct);

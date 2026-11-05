@@ -79,9 +79,13 @@ public partial class DbManager : DbContext
 
         modelBuilder.Entity<Position>(entity =>
         {
-            entity.HasKey(e => e.positionCode).HasName("PK__Position__83745B0338CA6DCA");
+            entity.HasKey(e => e.PositionCode).HasName("PK__Position__83745B0338CA6DCA");
 
-            entity.Property(e => e.positionName).HasMaxLength(50);
+            // The C# properties are PascalCase; the column names stay pinned to the existing schema.
+            entity.Property(e => e.PositionCode).HasColumnName("PositionCode");
+            entity.Property(e => e.PositionName)
+                .HasMaxLength(50)
+                .HasColumnName("PositionName");
         });
 
         modelBuilder.Entity<Project>(entity =>

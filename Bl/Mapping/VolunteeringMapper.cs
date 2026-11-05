@@ -1,10 +1,12 @@
+using Bl.Dtos.Common;
 using Bl.Dtos.Volunteering;
+using Bl.Exceptions;
 using Dal.Models;
 using Dal.Queries;
 
 namespace Bl.Mapping
 {
-    public static class VolunteeringMapper
+    internal static class VolunteeringMapper
     {
         public static VolunteeringDto ToDto(VolunteeringRow row)
         {
@@ -50,9 +52,28 @@ namespace Bl.Mapping
             };
         }
 
-        public static VolunteeringFilter ToFilter(VolunteeringFilterDto filter)
+        public const string SortByDate = "date";
+        public const string SortByVolunteer = "volunteer";
+        public const string SortByProject = "project";
+
+        public static VolunteeringListQuery ToQuery(VolunteeringPageQueryDto query, VolunteeringFilterDto filter)
         {
-            return new VolunteeringFilter(filter.VolunteerCode, filter.ProjectCode, filter.From, filter.To);
+            return new VolunteeringListQuery(
+                new VolunteeringFilter(filter.VolunteerCode, filter.ProjectCode, filter.From, filter.To),
+                ToSort(query.Sort),
+                PagingMapper.ToPageRequest(query));
+        }
+
+        private static VolunteeringSort ToSort(string? sort)
+        {
+            return sort?.Trim().ToLowerInvariant() switch
+            {
+                null or "" or SortByDate => VolunteeringSort.Date,
+                SortByVolunteer => VolunteeringSort.Volunteer,
+                SortByProject => VolunteeringSort.Project,
+                _ => throw new InvalidQueryException(
+                    $"Unknown sort '{sort}'. Allowed values: {SortByDate}, {SortByVolunteer}, {SortByProject}.")
+            };
         }
     }
 }

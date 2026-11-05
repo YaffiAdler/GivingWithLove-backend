@@ -1,6 +1,6 @@
-using Dal.Api;
+using Dal.Abstractions;
 using Dal.Models;
-using Dal.Services;
+using Dal.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,13 +23,13 @@ namespace Dal
 
             services.AddDbContext<DbManager>(options => options.UseSqlServer(connectionString));
 
-            services.AddScoped<DalEichudInterface, DalEichudService>();
-            services.AddScoped<DalPositionInterface, DalPositionService>();
-            services.AddScoped<DalProjectInterface, DalProjectService>();
-            services.AddScoped<DalSubProjectInterface, DalSubProjectService>();
-            services.AddScoped<DalVolunteerDomainInterface, DalVolunteerDomainService>();
-            services.AddScoped<DalVolunteeringInterface, DalVolunteeringService>();
-            services.AddScoped<DalVolunteerInterface, DalVolunteerService>();
+            services.AddScoped<IEichudRepository, EichudRepository>();
+            services.AddScoped<IPositionRepository, PositionRepository>();
+            services.AddScoped<IProjectRepository, ProjectRepository>();
+            services.AddScoped<ISubProjectRepository, SubProjectRepository>();
+            services.AddScoped<IVolunteerDomainRepository, VolunteerDomainRepository>();
+            services.AddScoped<IVolunteeringRepository, VolunteeringRepository>();
+            services.AddScoped<IVolunteerRepository, VolunteerRepository>();
 
             return services;
         }

@@ -4,7 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Web.Errors
 {
-    // Turns unhandled exceptions into ProblemDetails responses: NotFoundException -> 404, anything else -> 500.
+    // Turns unhandled exceptions into ProblemDetails responses:
+    // NotFoundException -> 404, InvalidQueryException -> 400, anything else -> 500.
     // Logging is not done here: ExceptionHandlerMiddleware already logs every exception it receives.
     public sealed class GlobalExceptionHandler : IExceptionHandler
     {
@@ -19,9 +20,12 @@ namespace Web.Errors
 
         public async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
         {
-            ProblemDetails problem = exception is NotFoundException notFound
-                ? CreateNotFoundProblem(notFound)
-                : CreateServerErrorProblem(exception);
+            ProblemDetails problem = exception switch
+            {
+                NotFoundException notFound => CreateNotFoundProblem(notFound),
+                InvalidQueryException invalidQuery => CreateInvalidQueryProblem(invalidQuery),
+                _ => CreateServerErrorProblem(exception)
+            };
 
             httpContext.Response.StatusCode = problem.Status ?? StatusCodes.Status500InternalServerError;
 
@@ -39,6 +43,16 @@ namespace Web.Errors
             {
                 Status = StatusCodes.Status404NotFound,
                 Title = "Resource not found.",
+                Detail = exception.Message
+            };
+        }
+
+        private static ProblemDetails CreateInvalidQueryProblem(InvalidQueryException exception)
+        {
+            return new ProblemDetails
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Invalid query.",
                 Detail = exception.Message
             };
         }
