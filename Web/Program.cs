@@ -1,6 +1,7 @@
 using Bl;
 using Dal;
 using Web.Errors;
+using Web.Swagger;
 
 namespace Web
 {
@@ -22,7 +23,12 @@ namespace Web
             builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+            // The frontend generates its types from swagger.json, so nullability and required members must match the C# types.
+            builder.Services.AddSwaggerGen(options =>
+            {
+                options.SupportNonNullableReferenceTypes();
+                options.SchemaFilter<NonNullableAsRequiredSchemaFilter>();
+            });
 
             AddFrontendCors(builder);
 

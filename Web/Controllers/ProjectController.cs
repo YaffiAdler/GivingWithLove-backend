@@ -1,5 +1,5 @@
-﻿using Bl.BLApi;
-using Bl.BLModels;
+﻿using Bl.Abstractions;
+using Bl.Dtos.Project;
 using Microsoft.AspNetCore.Mvc;
 using Web.Errors;
 
@@ -9,35 +9,51 @@ namespace Web.Controllers
     [ApiController]
     public class ProjectController : ControllerBase
     {
-        private readonly BlProjectInterface projectService;
+        private readonly IProjectService projectService;
 
-        public ProjectController(BlProjectInterface projectService)
+        public ProjectController(IProjectService projectService)
         {
             this.projectService = projectService;
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<BlProjectModel>>> GetAll(CancellationToken ct)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult<List<ProjectDto>>> GetAll(CancellationToken ct)
         {
             return await projectService.GetAllAsync(ct);
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<BlProjectModel>> GetById(int id, CancellationToken ct)
+        // Departments -> projects -> sub-projects. A full list: the tables are small lookups.
+        [HttpGet("tree")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult<List<DepartmentNodeDto>>> GetTree(CancellationToken ct)
         {
-            BlProjectModel? project = await projectService.GetByIdAsync(id, ct);
+            return await projectService.GetTreeAsync(ct);
+        }
+
+        [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ProjectDto>> GetById(int id, CancellationToken ct)
+        {
+            ProjectDto? project = await projectService.GetByIdAsync(id, ct);
             return project == null ? NotFound() : project;
         }
 
         [HttpPost]
-        public async Task<ActionResult<BlProjectModel>> Create([FromBody] BlProjectModel project, CancellationToken ct)
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ProjectDto>> Create([FromBody] CreateProjectDto project, CancellationToken ct)
         {
-            BlProjectModel created = await projectService.CreateAsync(project, ct);
+            ProjectDto created = await projectService.CreateAsync(project, ct);
             return CreatedAtAction(nameof(GetById), new { id = created.ProjectCode }, created);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] BlProjectModel project, CancellationToken ct)
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateProjectDto project, CancellationToken ct)
         {
             if (project.ProjectCode != id)
                 return this.IdMismatchProblem(id, project.ProjectCode);
@@ -47,6 +63,8 @@ namespace Web.Controllers
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id, CancellationToken ct)
         {
             await projectService.DeleteAsync(id, ct);

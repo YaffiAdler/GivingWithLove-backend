@@ -1,13 +1,33 @@
-using Bl.BLModels;
+using Bl.Dtos.Eichud;
 using Dal.Models;
 
 namespace Bl.Mapping
 {
-    public static class EichudMapper
+    internal static class EichudMapper
     {
-        public static BlEichudModel ToModel(Eichud eichud)
+        // The text columns are padded to a fixed length in the database, so every text value is trimmed.
+        public static EichudDto ToDto(Eichud eichud)
         {
-            return new BlEichudModel()
+            return new EichudDto(
+                eichud.EichudCode,
+                eichud.Tohar?.Trim(),
+                eichud.FamilyName?.Trim(),
+                eichud.FirstName?.Trim(),
+                eichud.Ending?.Trim(),
+                eichud.FathersName?.Trim(),
+                eichud.Shtibel?.Trim(),
+                eichud.Street?.Trim(),
+                eichud.House?.Trim(),
+                eichud.City?.Trim(),
+                eichud.ZipCode,
+                eichud.HousePhone?.Trim(),
+                eichud.CellPhone?.Trim(),
+                eichud.Shver?.Trim());
+        }
+
+        public static Eichud ToEntity(CreateEichudDto eichud)
+        {
+            return new Eichud()
             {
                 EichudCode = eichud.EichudCode,
                 Tohar = eichud.Tohar,
@@ -26,7 +46,7 @@ namespace Bl.Mapping
             };
         }
 
-        public static Eichud ToEntity(BlEichudModel eichud)
+        public static Eichud ToEntity(UpdateEichudDto eichud)
         {
             return new Eichud()
             {

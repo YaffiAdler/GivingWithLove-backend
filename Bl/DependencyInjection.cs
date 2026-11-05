@@ -1,6 +1,5 @@
-using Bl.BLApi;
-using Bl.BLServices;
-using Dal.Api;
+using Bl.Abstractions;
+using Bl.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Bl
@@ -9,13 +8,13 @@ namespace Bl
     {
         public static IServiceCollection AddBusinessLogic(this IServiceCollection services)
         {
-            services.AddScoped<BlEichudInterface, BlEichudService>();
-            services.AddScoped<BlPositionInterface, BlPositionService>();
-            services.AddScoped<BlProjectInterface, BlProjectService>();
-            services.AddScoped<BlSubProjectInterface, BlSubProjectService>();
-            services.AddScoped<BlVolunteerDomainInterface, BlVolunteerDomainService>();
-            services.AddScoped<BlVolunteeringInterface, BlVolunteeringService>();
-            services.AddScoped<BlVolunteerInterface, BLVolunteerService>();
+            services.AddScoped<IEichudService, EichudService>();
+            services.AddScoped<IPositionService, PositionService>();
+            services.AddScoped<IProjectService, ProjectService>();
+            services.AddScoped<ISubProjectService, SubProjectService>();
+            services.AddScoped<IVolunteerDomainService, VolunteerDomainService>();
+            services.AddScoped<IVolunteeringService, VolunteeringService>();
+            services.AddScoped<IVolunteerService, VolunteerService>();
 
             return services;
         }
