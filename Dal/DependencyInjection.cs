@@ -1,5 +1,6 @@
 using Dal.Abstractions;
 using Dal.Models;
+using Dal.Queries;
 using Dal.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -30,6 +31,7 @@ namespace Dal
             services.AddScoped<IVolunteerDomainRepository, VolunteerDomainRepository>();
             services.AddScoped<IVolunteeringRepository, VolunteeringRepository>();
             services.AddScoped<IVolunteerRepository, VolunteerRepository>();
+            services.AddScoped<IStatsQueries, StatsQueries>();
 
             return services;
         }
