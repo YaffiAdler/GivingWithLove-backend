@@ -15,6 +15,7 @@ namespace Bl
             services.AddScoped<IVolunteerDomainService, VolunteerDomainService>();
             services.AddScoped<IVolunteeringService, VolunteeringService>();
             services.AddScoped<IVolunteerService, VolunteerService>();
+            services.AddScoped<IStatsService, StatsService>();
 
             return services;
         }
