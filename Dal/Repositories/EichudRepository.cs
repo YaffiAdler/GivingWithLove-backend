@@ -27,7 +27,7 @@ namespace Dal.Repositories
                     || (eichud.FamilyName != null && eichud.FamilyName.Contains(name)));
 
             return await eichuds.ToPagedRowsAsync(
-                source => OrderBy(source, query.Sort),
+                source => OrderBy(source, query.Sort, query.Direction),
                 page => page,
                 query.Page,
                 ct);
@@ -68,15 +68,15 @@ namespace Dal.Repositories
         }
 
         // Every order ends with the key so that rows with equal names keep a stable position across pages.
-        private static IOrderedQueryable<Eichud> OrderBy(IQueryable<Eichud> eichuds, PersonSort sort)
+        private static IOrderedQueryable<Eichud> OrderBy(IQueryable<Eichud> eichuds, PersonSort sort, SortDirection direction)
         {
             return sort switch
             {
                 PersonSort.Name => eichuds
-                    .OrderBy(eichud => eichud.FamilyName)
-                    .ThenBy(eichud => eichud.FirstName)
+                    .OrderByDirection(eichud => eichud.FamilyName, direction)
+                    .ThenByDirection(eichud => eichud.FirstName, direction)
                     .ThenBy(eichud => eichud.EichudCode),
-                PersonSort.Code => eichuds.OrderBy(eichud => eichud.EichudCode),
+                PersonSort.Code => eichuds.OrderByDirection(eichud => eichud.EichudCode, direction),
                 _ => throw new ArgumentOutOfRangeException(nameof(sort), sort, null)
             };
         }

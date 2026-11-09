@@ -58,10 +58,18 @@ namespace Bl.Mapping
 
         public static VolunteeringListQuery ToQuery(VolunteeringPageQueryDto query, VolunteeringFilterDto filter)
         {
+            VolunteeringSort sort = ToSort(query.Sort);
             return new VolunteeringListQuery(
                 new VolunteeringFilter(filter.VolunteerCode, filter.ProjectCode, filter.From, filter.To),
-                ToSort(query.Sort),
+                sort,
+                PagingMapper.ToDirection(query.Direction, DefaultDirection(sort)),
                 PagingMapper.ToPageRequest(query));
+        }
+
+        // Dates are newest first; names are alphabetical.
+        private static SortDirection DefaultDirection(VolunteeringSort sort)
+        {
+            return sort == VolunteeringSort.Date ? SortDirection.Descending : SortDirection.Ascending;
         }
 
         private static VolunteeringSort ToSort(string? sort)

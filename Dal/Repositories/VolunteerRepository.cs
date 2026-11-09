@@ -27,42 +27,19 @@ namespace Dal.Repositories
                     || (volunteer.VolunteerCodeNavigation.FamilyName != null && volunteer.VolunteerCodeNavigation.FamilyName.Contains(name)));
 
             return await volunteers.ToPagedRowsAsync(
-                source => OrderBy(source, query.Sort),
+                source => OrderBy(source, query.Sort, query.Direction),
                 ToRows,
                 query.Page,
                 ct);
         }
 
-        // One SQL query: Eichud and Position are joined, and the domain project codes come from a joined collection.
-        public async Task<VolunteerDetailsRow?> GetDetailsByIdAsync(int id, CancellationToken ct)
+        public async Task<VolunteerRow?> GetRowByIdAsync(int id, CancellationToken ct)
         {
-            return await db.Volunteers
+            IQueryable<Volunteer> volunteers = db.Volunteers
                 .AsNoTracking()
-                .Where(volunteer => volunteer.VolunteerCode == id)
-                .Select(volunteer => new VolunteerDetailsRow(
-                    volunteer.VolunteerCode,
-                    volunteer.VolunteerCodeNavigation.FirstName,
-                    volunteer.VolunteerCodeNavigation.FamilyName,
-                    volunteer.PositionCode,
-                    volunteer.PositionCodeNavigation == null ? null : volunteer.PositionCodeNavigation.PositionName,
-                    // Distinct: VolunteerDomains has duplicate (volunteer, project) rows and no unique constraint.
-                    volunteer.VolunteerDomains
-                        .Select(domain => domain.ProjectCode)
-                        .Distinct()
-                        .OrderBy(projectCode => projectCode)
-                        .ToList(),
-                    volunteer.VolunteerCodeNavigation.Tohar,
-                    volunteer.VolunteerCodeNavigation.Ending,
-                    volunteer.VolunteerCodeNavigation.FathersName,
-                    volunteer.VolunteerCodeNavigation.Shtibel,
-                    volunteer.VolunteerCodeNavigation.Street,
-                    volunteer.VolunteerCodeNavigation.House,
-                    volunteer.VolunteerCodeNavigation.City,
-                    volunteer.VolunteerCodeNavigation.ZipCode,
-                    volunteer.VolunteerCodeNavigation.HousePhone,
-                    volunteer.VolunteerCodeNavigation.CellPhone,
-                    volunteer.VolunteerCodeNavigation.Shver))
-                .FirstOrDefaultAsync(ct);
+                .Where(volunteer => volunteer.VolunteerCode == id);
+
+            return await ToRows(volunteers).FirstOrDefaultAsync(ct);
         }
 
         public async Task<Volunteer> CreateAsync(Volunteer item, CancellationToken ct)
@@ -129,19 +106,20 @@ namespace Dal.Repositories
         }
 
         // Every order ends with the key so that rows with equal names keep a stable position across pages.
-        private static IOrderedQueryable<Volunteer> OrderBy(IQueryable<Volunteer> volunteers, PersonSort sort)
+        private static IOrderedQueryable<Volunteer> OrderBy(IQueryable<Volunteer> volunteers, PersonSort sort, SortDirection direction)
         {
             return sort switch
             {
                 PersonSort.Name => volunteers
-                    .OrderBy(volunteer => volunteer.VolunteerCodeNavigation.FamilyName)
-                    .ThenBy(volunteer => volunteer.VolunteerCodeNavigation.FirstName)
+                    .OrderByDirection(volunteer => volunteer.VolunteerCodeNavigation.FamilyName, direction)
+                    .ThenByDirection(volunteer => volunteer.VolunteerCodeNavigation.FirstName, direction)
                     .ThenBy(volunteer => volunteer.VolunteerCode),
-                PersonSort.Code => volunteers.OrderBy(volunteer => volunteer.VolunteerCode),
+                PersonSort.Code => volunteers.OrderByDirection(volunteer => volunteer.VolunteerCode, direction),
                 _ => throw new ArgumentOutOfRangeException(nameof(sort), sort, null)
             };
         }
 
+        // One SQL query: Eichud and Position are joined, and the domain project codes come from a joined collection.
         private static IQueryable<VolunteerRow> ToRows(IQueryable<Volunteer> volunteers)
         {
             return volunteers.Select(volunteer => new VolunteerRow(
@@ -155,7 +133,18 @@ namespace Dal.Repositories
                     .Select(domain => domain.ProjectCode)
                     .Distinct()
                     .OrderBy(projectCode => projectCode)
-                    .ToList()));
+                    .ToList(),
+                volunteer.VolunteerCodeNavigation.Tohar,
+                volunteer.VolunteerCodeNavigation.Ending,
+                volunteer.VolunteerCodeNavigation.FathersName,
+                volunteer.VolunteerCodeNavigation.Shtibel,
+                volunteer.VolunteerCodeNavigation.Street,
+                volunteer.VolunteerCodeNavigation.House,
+                volunteer.VolunteerCodeNavigation.City,
+                volunteer.VolunteerCodeNavigation.ZipCode,
+                volunteer.VolunteerCodeNavigation.HousePhone,
+                volunteer.VolunteerCodeNavigation.CellPhone,
+                volunteer.VolunteerCodeNavigation.Shver));
         }
     }
 }

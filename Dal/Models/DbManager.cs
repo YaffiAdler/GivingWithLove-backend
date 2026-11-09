@@ -155,11 +155,7 @@ public partial class DbManager : DbContext
         {
             entity.HasKey(e => e.VolunteeringCode).HasName("PK__tmp_ms_x__14E272E0721B3015");
 
-            entity.Property(e => e.MatcherCode)
-                .HasDefaultValue(0)
-                .HasColumnName("matcherCode");
-            entity.Property(e => e.PoorManCode).HasDefaultValue(0);
-            entity.Property(e => e.VolunteerCode).HasDefaultValue(0);
+            entity.Property(e => e.MatcherCode).HasColumnName("matcherCode");
 
             entity.HasOne(d => d.MatcherCodeNavigation).WithMany(p => p.VolunteeringMatcherCodeNavigations)
                 .HasForeignKey(d => d.MatcherCode)

@@ -18,7 +18,7 @@ namespace Dal.Repositories
         public async Task<PagedRows<VolunteeringRow>> GetPageAsync(VolunteeringListQuery query, CancellationToken ct)
         {
             return await Filter(db.Volunteerings.AsNoTracking(), query.Filter).ToPagedRowsAsync(
-                source => OrderBy(source, query.Sort),
+                source => OrderBy(source, query.Sort, query.Direction),
                 ToRows,
                 query.Page,
                 ct);
@@ -77,26 +77,27 @@ namespace Dal.Repositories
 
         // Ordered on the entity, before the projection: EF cannot translate ordering by a member of the projected record.
         // Every order ends with the key so that rows with equal values keep a stable position across pages.
-        private static IOrderedQueryable<Volunteering> OrderBy(IQueryable<Volunteering> volunteerings, VolunteeringSort sort)
+        // The direction applies to the sorted column only; the newest-first tie-breakers keep their direction.
+        private static IOrderedQueryable<Volunteering> OrderBy(IQueryable<Volunteering> volunteerings, VolunteeringSort sort, SortDirection direction)
         {
             return sort switch
             {
                 VolunteeringSort.Date => volunteerings
-                    .OrderByDescending(volunteering => volunteering.DateOfVolunteering)
+                    .OrderByDirection(volunteering => volunteering.DateOfVolunteering, direction)
                     .ThenByDescending(volunteering => volunteering.VolunteeringCode),
                 VolunteeringSort.Volunteer => volunteerings
-                    .OrderBy(volunteering => volunteering.VolunteerCodeNavigation == null
+                    .OrderByDirection(volunteering => volunteering.VolunteerCodeNavigation == null
                         ? null
-                        : volunteering.VolunteerCodeNavigation.VolunteerCodeNavigation.FamilyName)
-                    .ThenBy(volunteering => volunteering.VolunteerCodeNavigation == null
+                        : volunteering.VolunteerCodeNavigation.VolunteerCodeNavigation.FamilyName, direction)
+                    .ThenByDirection(volunteering => volunteering.VolunteerCodeNavigation == null
                         ? null
-                        : volunteering.VolunteerCodeNavigation.VolunteerCodeNavigation.FirstName)
+                        : volunteering.VolunteerCodeNavigation.VolunteerCodeNavigation.FirstName, direction)
                     .ThenByDescending(volunteering => volunteering.DateOfVolunteering)
                     .ThenByDescending(volunteering => volunteering.VolunteeringCode),
                 VolunteeringSort.Project => volunteerings
-                    .OrderBy(volunteering => volunteering.ProjectCodeNavigation == null
+                    .OrderByDirection(volunteering => volunteering.ProjectCodeNavigation == null
                         ? null
-                        : volunteering.ProjectCodeNavigation.ProjectName)
+                        : volunteering.ProjectCodeNavigation.ProjectName, direction)
                     .ThenByDescending(volunteering => volunteering.DateOfVolunteering)
                     .ThenByDescending(volunteering => volunteering.VolunteeringCode),
                 _ => throw new ArgumentOutOfRangeException(nameof(sort), sort, null)

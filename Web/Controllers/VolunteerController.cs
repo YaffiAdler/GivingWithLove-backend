@@ -18,7 +18,7 @@ namespace Web.Controllers
         }
 
         // Paged. search: a number matches the code exactly, any other text is searched in the first and family names.
-        // sort: name (default: family name, then first name) | code.
+        // sort: name (default: family name, then first name) | code; direction: asc (default) | desc.
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]

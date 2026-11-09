@@ -76,27 +76,32 @@ namespace Bl.Tests.Stats
                 new SubProject { SubProjectCode = 200, ProjectCode = 21, SubProjectName = "חלוקת סלים", EstimatedTime = 60, EstimatedCost = 100 });
             db.SaveChanges();
 
-            InsertVolunteering(db, 1, January4, volunteerCode: 1, matcherCode: 2, poorManCode: 4, projectCode: 11, subProjectCode: 100);
-            InsertVolunteering(db, 2, January5, volunteerCode: 1, matcherCode: null, poorManCode: 4, projectCode: 11, subProjectCode: 101);
-            InsertVolunteering(db, 3, March6, volunteerCode: 2, matcherCode: 1, poorManCode: 4, projectCode: 21, subProjectCode: 200);
+            AddVolunteering(db, 1, January4, volunteerCode: 1, matcherCode: 2, poorManCode: 4, projectCode: 11, subProjectCode: 100);
+            AddVolunteering(db, 2, January5, volunteerCode: 1, matcherCode: null, poorManCode: 4, projectCode: 11, subProjectCode: 101);
+            AddVolunteering(db, 3, March6, volunteerCode: 2, matcherCode: 1, poorManCode: 4, projectCode: 21, subProjectCode: 200);
             // Points to the department itself and has no sub-project: counts, with 0 hours and 0 value.
-            InsertVolunteering(db, 4, March8, volunteerCode: 2, matcherCode: null, poorManCode: null, projectCode: 20, subProjectCode: null);
+            AddVolunteering(db, 4, March8, volunteerCode: 2, matcherCode: null, poorManCode: null, projectCode: 20, subProjectCode: null);
             // No volunteer: counts in totals but is not ranked.
-            InsertVolunteering(db, 5, April1, volunteerCode: null, matcherCode: null, poorManCode: null, projectCode: 21, subProjectCode: 200);
+            AddVolunteering(db, 5, April1, volunteerCode: null, matcherCode: null, poorManCode: null, projectCode: 21, subProjectCode: 200);
             // No project: counts in totals but in no department.
-            InsertVolunteering(db, 6, April2, volunteerCode: 3, matcherCode: null, poorManCode: null, projectCode: null, subProjectCode: null);
+            AddVolunteering(db, 6, April2, volunteerCode: 3, matcherCode: null, poorManCode: null, projectCode: null, subProjectCode: null);
+            db.SaveChanges();
         }
 
-        // Plain SQL instead of SaveChanges: the model gives VolunteerCode, matcherCode and PoorManCode a database default of 0,
-        // so EF leaves a null value out of the INSERT and the row would get 0 instead of NULL.
-        private static void InsertVolunteering(
+        private static void AddVolunteering(
             DbManager db, int volunteeringCode, DateOnly date,
             int? volunteerCode, int? matcherCode, int? poorManCode, int? projectCode, int? subProjectCode)
         {
-            db.Database.ExecuteSql($"""
-                INSERT INTO Volunteerings (VolunteeringCode, DateOfVolunteering, VolunteerCode, matcherCode, PoorManCode, ProjectCode, SubProjectCode)
-                VALUES ({volunteeringCode}, {date}, {volunteerCode}, {matcherCode}, {poorManCode}, {projectCode}, {subProjectCode})
-                """);
+            db.Volunteerings.Add(new Volunteering
+            {
+                VolunteeringCode = volunteeringCode,
+                DateOfVolunteering = date,
+                VolunteerCode = volunteerCode,
+                MatcherCode = matcherCode,
+                PoorManCode = poorManCode,
+                ProjectCode = projectCode,
+                SubProjectCode = subProjectCode
+            });
         }
     }
 }

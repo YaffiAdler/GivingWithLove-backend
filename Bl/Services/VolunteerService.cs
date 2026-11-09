@@ -28,7 +28,7 @@ namespace Bl.Services
 
         public async Task<VolunteerDetailsDto?> GetByIdAsync(int id, CancellationToken ct)
         {
-            VolunteerDetailsRow? row = await repository.GetDetailsByIdAsync(id, ct);
+            VolunteerRow? row = await repository.GetRowByIdAsync(id, ct);
             return row == null ? null : VolunteerMapper.ToDetailsDto(row);
         }
 

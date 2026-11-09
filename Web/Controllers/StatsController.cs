@@ -26,7 +26,7 @@ namespace Web.Controllers
             return await statsService.GetOverviewAsync(filter, ct);
         }
 
-        // Paged ranking of the volunteers active in the range. sort: count (default) | hours | lastDate, descending.
+        // Paged ranking of the volunteers active in the range. sort: count (default) | hours | lastDate; direction: desc (default) | asc.
         [HttpGet("volunteers")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]

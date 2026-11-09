@@ -18,7 +18,7 @@ namespace Web.Controllers
         }
 
         // Paged. Optional filters: volunteerCode, projectCode, from, to (yyyy-MM-dd, inclusive).
-        // sort: date (default, newest first) | volunteer | project.
+        // sort: date (default) | volunteer | project; direction defaults to desc for date and asc for the names.
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
