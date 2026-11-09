@@ -255,6 +255,35 @@ namespace Bl.Tests.Stats
         }
 
         [Fact]
+        public async Task VolunteerRanking_ByCountAscending_TiesStillOrderedByCode()
+        {
+            VolunteerRankingQueryDto query = new VolunteerRankingQueryDto { Sort = "count", Direction = "asc" };
+
+            PagedResult<VolunteerRankingRowDto> page = await service.GetVolunteerRankingAsync(AllDates, query, CancellationToken.None);
+
+            Assert.Equal([(3, 1), (1, 2), (2, 2)], page.Items.Select(row => (row.VolunteerCode, row.Count)));
+        }
+
+        [Fact]
+        public async Task VolunteerRanking_ExplicitDescending_MatchesTheDefault()
+        {
+            VolunteerRankingQueryDto query = new VolunteerRankingQueryDto { Sort = "hours", Direction = "DESC" };
+
+            PagedResult<VolunteerRankingRowDto> page = await service.GetVolunteerRankingAsync(AllDates, query, CancellationToken.None);
+
+            Assert.Equal([1, 2, 3], page.Items.Select(row => row.VolunteerCode));
+        }
+
+        [Fact]
+        public async Task VolunteerRanking_UnknownDirection_Throws()
+        {
+            VolunteerRankingQueryDto query = new VolunteerRankingQueryDto { Direction = "sideways" };
+
+            await Assert.ThrowsAsync<InvalidQueryException>(
+                () => service.GetVolunteerRankingAsync(AllDates, query, CancellationToken.None));
+        }
+
+        [Fact]
         public async Task VolunteerStats_CountsVolunteerAndMatcherSeparately()
         {
             VolunteerStatsDto stats = await service.GetVolunteerStatsAsync(1, AllDates, CancellationToken.None);

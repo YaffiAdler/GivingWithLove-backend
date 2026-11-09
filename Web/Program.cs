@@ -28,6 +28,7 @@ namespace Web
             {
                 options.SupportNonNullableReferenceTypes();
                 options.SchemaFilter<NonNullableAsRequiredSchemaFilter>();
+                options.ParameterFilter<SortDirectionParameterFilter>();
             });
 
             AddFrontendCors(builder);

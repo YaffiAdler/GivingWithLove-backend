@@ -1,6 +1,7 @@
 namespace Bl.Dtos.Volunteer
 {
-    // VolunteerDto plus the Eichud fields that the volunteer screens show; text fields are trimmed.
+    // A single volunteer with the Eichud fields that the volunteer screens show; text fields are trimmed.
+    // Today it has the same fields as VolunteerDto.
     public sealed record VolunteerDetailsDto(
         int VolunteerCode,
         string? FirstName,

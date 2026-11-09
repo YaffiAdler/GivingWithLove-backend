@@ -113,10 +113,10 @@ namespace Dal.Queries
         }
 
         public async Task<PagedRows<VolunteerRankingRow>> GetVolunteerRankingPageAsync(
-            StatsCriteria criteria, VolunteerRankingSort sort, PageRequest page, CancellationToken ct)
+            StatsCriteria criteria, VolunteerRankingSort sort, SortDirection direction, PageRequest page, CancellationToken ct)
         {
             return await VolunteerTotals(criteria).ToPagedRowsAsync(
-                totals => OrderBy(totals, sort),
+                totals => OrderBy(totals, sort, direction),
                 WithNames,
                 page,
                 ct);
@@ -125,7 +125,7 @@ namespace Dal.Queries
         public async Task<List<VolunteerRankingRow>> GetTopVolunteersAsync(
             StatsCriteria criteria, VolunteerRankingSort sort, int count, CancellationToken ct)
         {
-            IQueryable<VolunteerTotals> top = OrderBy(VolunteerTotals(criteria), sort).Take(count);
+            IQueryable<VolunteerTotals> top = OrderBy(VolunteerTotals(criteria), sort, SortDirection.Descending).Take(count);
             return await WithNames(top).ToListAsync(ct);
         }
 
@@ -217,18 +217,19 @@ namespace Dal.Queries
                 });
         }
 
-        private static IOrderedQueryable<VolunteerTotals> OrderBy(IQueryable<VolunteerTotals> totals, VolunteerRankingSort sort)
+        private static IOrderedQueryable<VolunteerTotals> OrderBy(
+            IQueryable<VolunteerTotals> totals, VolunteerRankingSort sort, SortDirection direction)
         {
             return sort switch
             {
                 VolunteerRankingSort.Count => totals
-                    .OrderByDescending(volunteer => volunteer.Count)
+                    .OrderByDirection(volunteer => volunteer.Count, direction)
                     .ThenBy(volunteer => volunteer.VolunteerCode),
                 VolunteerRankingSort.Hours => totals
-                    .OrderByDescending(volunteer => volunteer.EstimatedTimeSum)
+                    .OrderByDirection(volunteer => volunteer.EstimatedTimeSum, direction)
                     .ThenBy(volunteer => volunteer.VolunteerCode),
                 VolunteerRankingSort.LastDate => totals
-                    .OrderByDescending(volunteer => volunteer.LastDate)
+                    .OrderByDirection(volunteer => volunteer.LastDate, direction)
                     .ThenBy(volunteer => volunteer.VolunteerCode),
                 _ => throw new ArgumentOutOfRangeException(nameof(sort), sort, null)
             };

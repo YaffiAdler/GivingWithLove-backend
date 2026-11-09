@@ -46,6 +46,17 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "Direction",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1062,6 +1073,17 @@
             "schema": {
               "type": "string"
             }
+          },
+          {
+            "name": "Direction",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "type": "string"
+            }
           }
         ],
         "responses": {
@@ -1624,6 +1646,17 @@
             "name": "Sort",
             "in": "query",
             "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Direction",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
               "type": "string"
             }
           }
@@ -2305,6 +2338,17 @@
             "name": "Sort",
             "in": "query",
             "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Direction",
+            "in": "query",
+            "schema": {
+              "enum": [
+                "asc",
+                "desc"
+              ],
               "type": "string"
             }
           },
@@ -3695,6 +3739,51 @@
               "type": "integer",
               "format": "int32"
             }
+          },
+          "tohar": {
+            "type": "string",
+            "nullable": true
+          },
+          "ending": {
+            "type": "string",
+            "nullable": true
+          },
+          "fathersName": {
+            "type": "string",
+            "nullable": true
+          },
+          "shtibel": {
+            "type": "string",
+            "nullable": true
+          },
+          "street": {
+            "type": "string",
+            "nullable": true
+          },
+          "house": {
+            "type": "string",
+            "nullable": true
+          },
+          "city": {
+            "type": "string",
+            "nullable": true
+          },
+          "zipCode": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "housePhone": {
+            "type": "string",
+            "nullable": true
+          },
+          "cellPhone": {
+            "type": "string",
+            "nullable": true
+          },
+          "shver": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false

@@ -15,10 +15,21 @@ namespace Bl.Mapping
                 row.FamilyName?.Trim(),
                 row.PositionCode,
                 row.PositionName,
-                row.ProjectCodes);
+                row.ProjectCodes,
+                row.Tohar?.Trim(),
+                row.Ending?.Trim(),
+                row.FathersName?.Trim(),
+                row.Shtibel?.Trim(),
+                row.Street?.Trim(),
+                row.House?.Trim(),
+                row.City?.Trim(),
+                row.ZipCode,
+                row.HousePhone?.Trim(),
+                row.CellPhone?.Trim(),
+                row.Shver?.Trim());
         }
 
-        public static VolunteerDetailsDto ToDetailsDto(VolunteerDetailsRow row)
+        public static VolunteerDetailsDto ToDetailsDto(VolunteerRow row)
         {
             return new VolunteerDetailsDto(
                 row.VolunteerCode,

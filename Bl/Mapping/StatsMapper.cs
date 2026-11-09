@@ -100,6 +100,12 @@ namespace Bl.Mapping
             return new StatsCriteria(filter.From, filter.To, volunteerCode, matcherCode, projectCode);
         }
 
+        // A ranking shows the most active volunteers first unless the caller asks otherwise.
+        public static SortDirection ToRankingDirection(string? direction)
+        {
+            return PagingMapper.ToDirection(direction, SortDirection.Descending);
+        }
+
         public static VolunteerRankingSort ToSort(string? sort)
         {
             return sort?.Trim().ToLowerInvariant() switch

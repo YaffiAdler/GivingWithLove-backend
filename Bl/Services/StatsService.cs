@@ -50,6 +50,7 @@ namespace Bl.Services
             PagedRows<VolunteerRankingRow> rows = await queries.GetVolunteerRankingPageAsync(
                 StatsMapper.ToCriteria(filter),
                 StatsMapper.ToSort(query.Sort),
+                StatsMapper.ToRankingDirection(query.Direction),
                 PagingMapper.ToPageRequest(query),
                 ct);
             return PagingMapper.ToPagedResult(rows, query, StatsMapper.ToDto);

@@ -21,8 +21,9 @@ namespace Dal.Queries
 
         // Volunteerings without a volunteer are not ranked.
         Task<PagedRows<VolunteerRankingRow>> GetVolunteerRankingPageAsync(
-            StatsCriteria criteria, VolunteerRankingSort sort, PageRequest page, CancellationToken ct);
+            StatsCriteria criteria, VolunteerRankingSort sort, SortDirection direction, PageRequest page, CancellationToken ct);
 
+        // Highest first.
         Task<List<VolunteerRankingRow>> GetTopVolunteersAsync(
             StatsCriteria criteria, VolunteerRankingSort sort, int count, CancellationToken ct);
 

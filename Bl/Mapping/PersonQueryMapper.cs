@@ -10,6 +10,9 @@ namespace Bl.Mapping
         public const string SortByName = "name";
         public const string SortByCode = "code";
 
+        // Both sorts are alphabetical / numerical ascending unless the caller asks otherwise.
+        private const SortDirection DefaultDirection = SortDirection.Ascending;
+
         // A numeric search text is a code and must match exactly; any other text is searched inside the first and family names.
         public static PersonListQuery ToQuery(PageQueryDto query)
         {
@@ -17,7 +20,12 @@ namespace Bl.Mapping
             int? code = int.TryParse(search, out int parsedCode) ? parsedCode : null;
             string? nameContains = code == null ? search : null;
 
-            return new PersonListQuery(code, nameContains, ToSort(query.Sort), PagingMapper.ToPageRequest(query));
+            return new PersonListQuery(
+                code,
+                nameContains,
+                ToSort(query.Sort),
+                PagingMapper.ToDirection(query.Direction, DefaultDirection),
+                PagingMapper.ToPageRequest(query));
         }
 
         private static PersonSort ToSort(string? sort)

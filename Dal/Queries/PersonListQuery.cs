@@ -6,5 +6,6 @@ namespace Dal.Queries
         int? Code,
         string? NameContains,
         PersonSort Sort,
+        SortDirection Direction,
         PageRequest Page);
 }

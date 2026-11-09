@@ -1,8 +1,9 @@
 namespace Dal.Queries
 {
+    // The requested direction applies to the sorted column; ties are always broken newest first.
     public enum VolunteeringSort
     {
-        // Newest first.
+        // Date, then VolunteeringCode descending.
         Date,
         // Volunteer family name, then first name, then newest first.
         Volunteer,
